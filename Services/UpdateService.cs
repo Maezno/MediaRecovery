@@ -157,6 +157,34 @@ public class UpdateService
             }
         }
 
+        // Validar integridad mínima: debe existir, tener tamaño válido y comenzar con la firma PE de Windows ('MZ')
+        try
+        {
+            var fileInfo = new FileInfo(tempExePath);
+            if (!fileInfo.Exists || fileInfo.Length < 1024 * 1024)
+            {
+                try { File.Delete(tempExePath); } catch { }
+                return null;
+            }
+
+            byte[] header = new byte[2];
+            using (var fs = new FileStream(tempExePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                if (fs.Read(header, 0, 2) < 2 || header[0] != 0x4D || header[1] != 0x5A)
+                {
+                    // Archivo no es un ejecutable PE válido (ej. multipart corrupto o página de error HTML)
+                    fs.Close();
+                    try { File.Delete(tempExePath); } catch { }
+                    return null;
+                }
+            }
+        }
+        catch
+        {
+            try { File.Delete(tempExePath); } catch { }
+            return null;
+        }
+
         return tempExePath;
     }
 
@@ -166,6 +194,23 @@ public class UpdateService
     public void ApplyUpdateAndRestart(string tempExePath)
     {
         if (string.IsNullOrWhiteSpace(tempExePath) || !File.Exists(tempExePath)) return;
+
+        // Doble verificación de seguridad de la firma PE antes de ejecutar la sustitución
+        try
+        {
+            byte[] header = new byte[2];
+            using (var fs = new FileStream(tempExePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                if (fs.Read(header, 0, 2) < 2 || header[0] != 0x4D || header[1] != 0x5A)
+                {
+                    return;
+                }
+            }
+        }
+        catch
+        {
+            return;
+        }
 
         string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
         if (string.IsNullOrWhiteSpace(currentExePath)) return;
