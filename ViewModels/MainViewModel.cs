@@ -134,10 +134,10 @@ public class MainViewModel : ViewModelBase
         IsUpdating = true;
         UpdateNoticeText = "Descargando actualización en segundo plano...";
 
-        var progress = new Progress<double>(pct =>
+        var progress = new Progress<(double Pct, double SpeedMBs)>(p =>
         {
-            UpdateDownloadProgress = pct;
-            UpdateNoticeText = $"Descargando actualización: {pct:F0}%";
+            UpdateDownloadProgress = p.Pct;
+            UpdateNoticeText = $"Descargando actualización: {p.Pct:F0}% ({p.SpeedMBs:F1} MB/s)";
         });
 
         try

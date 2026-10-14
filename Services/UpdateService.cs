@@ -27,7 +27,14 @@ public class UpdateService
 
     public UpdateService()
     {
-        _http = new HttpClient();
+        var handler = new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(10),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+            MaxConnectionsPerServer = 10,
+            EnableMultipleHttp2Connections = true
+        };
+        _http = new HttpClient(handler);
         _http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MediaRecoveryStudio", GetCurrentVersionString()));
     }
 
@@ -94,11 +101,11 @@ public class UpdateService
     }
 
     /// <summary>
-    /// Paso 1: Descarga el nuevo binario a un archivo temporal sin cerrar la aplicación.
+    /// Paso 1: Descarga el nuevo binario a un archivo temporal a alta velocidad (buffer de 512KB + streams optimizados).
     /// </summary>
     public async Task<string?> DownloadUpdateAsync(
         string downloadUrl,
-        IProgress<double>? progress = null,
+        IProgress<(double Pct, double SpeedMBs)>? progress = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(downloadUrl)) return null;
@@ -115,19 +122,37 @@ public class UpdateService
             long totalBytes = response.Content.Headers.ContentLength ?? -1;
 
             await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            await using var fileStream = new FileStream(tempExePath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+            // FileStream optimizado con 512 KB de buffer interno y escritura asíncrona
+            const int bufferSize = 512 * 1024;
+            await using var fileStream = new FileStream(tempExePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-            byte[] buffer = new byte[65536];
+            byte[] buffer = new byte[bufferSize];
             long totalRead = 0;
             int bytesRead;
+
+            var stopwatch = Stopwatch.StartNew();
+            long lastReportBytes = 0;
+            long lastReportTicks = stopwatch.ElapsedTicks;
 
             while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
             {
                 await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
                 totalRead += bytesRead;
-                if (totalBytes > 0 && progress != null)
+
+                long nowTicks = stopwatch.ElapsedTicks;
+                double elapsedSec = (double)(nowTicks - lastReportTicks) / Stopwatch.Frequency;
+
+                // Notificar cada 200 ms para no saturar el Dispatcher UI
+                if (elapsedSec >= 0.20 && progress != null)
                 {
-                    progress.Report((double)totalRead / totalBytes * 100.0);
+                    double bytesInInterval = totalRead - lastReportBytes;
+                    double speedMBs = (bytesInInterval / (1024.0 * 1024.0)) / elapsedSec;
+                    double pct = totalBytes > 0 ? ((double)totalRead / totalBytes * 100.0) : 0;
+
+                    progress.Report((pct, speedMBs));
+
+                    lastReportTicks = nowTicks;
+                    lastReportBytes = totalRead;
                 }
             }
         }
