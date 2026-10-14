@@ -108,11 +108,21 @@ public class MainViewModel : ViewModelBase
         }
     }
 
+    private string? _downloadedTempPath;
+    private bool _isUpdateDownloaded;
+    public bool IsUpdateDownloaded { get => _isUpdateDownloaded; set => SetField(ref _isUpdateDownloaded, value); }
+
     private async Task ApplyUpdateAsync()
     {
+        // Si ya está descargada en el archivo temporal, el usuario hizo clic en "Reiniciar y actualizar"
+        if (IsUpdateDownloaded && !string.IsNullOrWhiteSpace(_downloadedTempPath))
+        {
+            _updateService.ApplyUpdateAndRestart(_downloadedTempPath);
+            return;
+        }
+
         if (_lastUpdateResult == null || string.IsNullOrWhiteSpace(_lastUpdateResult.DownloadUrl))
         {
-            // Si no hay asset binario directo, abrir release en el navegador
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = $"https://github.com/maezno/MediaRecovery/releases/tag/v{_lastUpdateResult?.LatestVersion ?? "latest"}",
@@ -122,7 +132,7 @@ public class MainViewModel : ViewModelBase
         }
 
         IsUpdating = true;
-        UpdateNoticeText = "Descargando actualización e instalando...";
+        UpdateNoticeText = "Descargando actualización en segundo plano...";
 
         var progress = new Progress<double>(pct =>
         {
@@ -132,7 +142,20 @@ public class MainViewModel : ViewModelBase
 
         try
         {
-            await _updateService.DownloadAndInstallUpdateAsync(_lastUpdateResult.DownloadUrl, progress);
+            string? tempPath = await _updateService.DownloadUpdateAsync(_lastUpdateResult.DownloadUrl, progress);
+            if (!string.IsNullOrWhiteSpace(tempPath) && System.IO.File.Exists(tempPath))
+            {
+                _downloadedTempPath = tempPath;
+                IsUpdateDownloaded = true;
+                IsUpdating = false;
+                UpdateNoticeText = $"¡Actualización v{_lastUpdateResult.LatestVersion} lista! Haz clic para reiniciar y actualizar.";
+                UpdateButtonText = "🔄 Reiniciar y actualizar";
+            }
+            else
+            {
+                UpdateNoticeText = "No se pudo completar la descarga del archivo.";
+                IsUpdating = false;
+            }
         }
         catch (Exception ex)
         {

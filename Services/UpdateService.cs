@@ -94,22 +94,21 @@ public class UpdateService
     }
 
     /// <summary>
-    /// Descarga el nuevo ejecutable y crea un script cmd para reemplazar el actual y relanzar la app.
+    /// Paso 1: Descarga el nuevo binario a un archivo temporal sin cerrar la aplicación.
     /// </summary>
-    public async Task<bool> DownloadAndInstallUpdateAsync(
+    public async Task<string?> DownloadUpdateAsync(
         string downloadUrl,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(downloadUrl)) return false;
+        if (string.IsNullOrWhiteSpace(downloadUrl)) return null;
 
         string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
-        if (string.IsNullOrWhiteSpace(currentExePath) || !File.Exists(currentExePath)) return false;
+        if (string.IsNullOrWhiteSpace(currentExePath)) return null;
 
         string currentDir = Path.GetDirectoryName(currentExePath)!;
-        string tempExePath = Path.Combine(currentDir, $"MediaRecovery_Update_{Guid.NewGuid():N}.exe");
+        string tempExePath = Path.Combine(currentDir, $"MediaRecovery_New_{Guid.NewGuid():N}.tmp");
 
-        // 1. Descarga del archivo con reporte de progreso
         using (var response = await _http.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
         {
             response.EnsureSuccessStatusCode();
@@ -133,7 +132,20 @@ public class UpdateService
             }
         }
 
-        // 2. Generar script CMD para esperar cierre del proceso, reemplazar el .exe y relanzarlo
+        return tempExePath;
+    }
+
+    /// <summary>
+    /// Paso 2: Genera el script de reemplazo, sustituye el ejecutable actual y reinicia la app.
+    /// </summary>
+    public void ApplyUpdateAndRestart(string tempExePath)
+    {
+        if (string.IsNullOrWhiteSpace(tempExePath) || !File.Exists(tempExePath)) return;
+
+        string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
+        if (string.IsNullOrWhiteSpace(currentExePath)) return;
+
+        string currentDir = Path.GetDirectoryName(currentExePath)!;
         int currentPid = Environment.ProcessId;
         string updaterScriptPath = Path.Combine(currentDir, "update_install.cmd");
 
@@ -149,9 +161,8 @@ move /y ""{tempExePath}"" ""{currentExePath}"" >nul
 start """" ""{currentExePath}""
 del ""%~f0""
 ";
-        await File.WriteAllTextAsync(updaterScriptPath, scriptContent, cancellationToken);
+        File.WriteAllText(updaterScriptPath, scriptContent);
 
-        // 3. Ejecutar el script y cerrar la app actual
         var psi = new ProcessStartInfo
         {
             FileName = "cmd.exe",
@@ -161,12 +172,9 @@ del ""%~f0""
         };
         Process.Start(psi);
 
-        // Salir de la aplicación para permitir el reemplazo
         System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
             System.Windows.Application.Current.Shutdown();
         });
-
-        return true;
     }
 }
