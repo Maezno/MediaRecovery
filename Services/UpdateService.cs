@@ -170,20 +170,47 @@ public class UpdateService
         string currentExePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
         if (string.IsNullOrWhiteSpace(currentExePath)) return;
 
-        string currentDir = Path.GetDirectoryName(currentExePath)!;
         int currentPid = Environment.ProcessId;
-        string updaterScriptPath = Path.Combine(currentDir, "update_install.cmd");
 
+        // Guardamos el script en la carpeta temporal para que no dependa ni bloquee el directorio de la app
+        string updaterScriptPath = Path.Combine(Path.GetTempPath(), $"mr_update_{Guid.NewGuid():N}.cmd");
+
+        // Script batch con bucle de espera por liberación de bloqueo (file lock) y reintentos en el comando move
         string scriptContent = $@"@echo off
-timeout /t 1 /nobreak > nul
-:waitloop
+setlocal enabledelayedexpansion
+
+:: 1. Esperar a que el proceso anterior termine completamente
+:waitproc
 tasklist /fi ""PID eq {currentPid}"" 2>nul | find ""{currentPid}"" >nul
 if not errorlevel 1 (
-    timeout /t 1 /nobreak > nul
-    goto waitloop
+    timeout /t 1 /nobreak >nul
+    goto waitproc
 )
-move /y ""{tempExePath}"" ""{currentExePath}"" >nul
+
+:: Breve pausa para asegurar liberacion de handles del sistema operativo
+timeout /t 1 /nobreak >nul
+
+:: 2. Bucle de reintentos para sobrescribir el ejecutable original
+set RETRIES=0
+:moveloop
+move /y ""{tempExePath}"" ""{currentExePath}"" >nul 2>&1
+if errorlevel 1 (
+    set /a RETRIES+=1
+    if !RETRIES! geq 30 goto fail
+    timeout /t 1 /nobreak >nul
+    goto moveloop
+)
+
+:: 3. Iniciar la aplicacion actualizada
 start """" ""{currentExePath}""
+goto cleanup
+
+:fail
+:: Si fallo por permisos u otro motivo, abrir al menos el ejecutable o notificar
+start """" ""{currentExePath}""
+
+:cleanup
+:: Auto-eliminar el script temporal
 del ""%~f0""
 ";
         File.WriteAllText(updaterScriptPath, scriptContent);
@@ -197,9 +224,11 @@ del ""%~f0""
         };
         Process.Start(psi);
 
+        // Forzar cierre completo de la app para liberar handles de archivos de inmediato
         System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
             System.Windows.Application.Current.Shutdown();
         });
+        Environment.Exit(0);
     }
 }
