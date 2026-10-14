@@ -56,13 +56,66 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header compacto -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,6">
-            <TextBlock Text="MediaRecovery Studio" FontSize="17" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" VerticalAlignment="Center"/>
-            <Border Background="#21262D" CornerRadius="4" Margin="10,0,0,0" Padding="6,1" VerticalAlignment="Center">
-                <TextBlock Text="WPF / .NET 10" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}"/>
+        <!-- Header compacto con botón de actualización y banner -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,6">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="MediaRecovery Studio" FontSize="17" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" VerticalAlignment="Center"/>
+                    <Border Background="#21262D" CornerRadius="4" Margin="10,0,0,0" Padding="6,1" VerticalAlignment="Center">
+                        <TextBlock Text="v1.0.0 (.NET 10)" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Botón Buscar Actualizaciones en la esquina derecha -->
+                <Button DockPanel.Dock="Right" 
+                        Content="🔄 Buscar actualización" 
+                        Style="{StaticResource SecondaryButtonStyle}" 
+                        Command="{Binding CheckUpdateCommand}" 
+                        IsEnabled="{Binding IsCheckingUpdate, Converter={x:Null}}" 
+                        FontSize="11" 
+                        Padding="8,3" 
+                        HorizontalAlignment="Right"
+                        ToolTip="Comprobar si hay una versión más reciente en GitHub (maezno/MediaRecovery)"/>
+            </DockPanel>
+
+            <!-- Banner flotante de aviso de actualización disponible -->
+            <Border Visibility="{Binding HasUpdateNotice, Converter={StaticResource BoolToVis}}" 
+                    Background="#162235" 
+                    BorderBrush="{StaticResource BrushAccent}" 
+                    BorderThickness="1" 
+                    CornerRadius="6" 
+                    Margin="0,6,0,0" 
+                    Padding="10,6">
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Right" 
+                            Content="✕" 
+                            Style="{StaticResource SecondaryButtonStyle}" 
+                            Command="{Binding DismissUpdateCommand}" 
+                            Padding="6,2" 
+                            FontSize="11" 
+                            Margin="6,0,0,0" 
+                            VerticalAlignment="Center"/>
+                    
+                    <Button DockPanel.Dock="Right" 
+                            Content="{Binding UpdateButtonText}" 
+                            Style="{StaticResource PrimaryButtonStyle}" 
+                            Background="#238636" 
+                            BorderBrush="#2EA043" 
+                            Command="{Binding DownloadUpdateCommand}" 
+                            Visibility="{Binding UpdateButtonText, Converter={x:Null}}"
+                            Padding="10,3" 
+                            FontSize="11" 
+                            FontWeight="SemiBold" 
+                            Margin="6,0,0,0" 
+                            VerticalAlignment="Center"/>
+
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding UpdateNoticeText}" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" FontWeight="SemiBold"/>
+                        <ProgressBar Height="4" Value="{Binding UpdateDownloadProgress}" Maximum="100" Margin="0,4,0,0" Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVis}}" Foreground="{StaticResource BrushSuccess}" Background="#21262D"/>
+                    </StackPanel>
+                </DockPanel>
             </Border>
-        </DockPanel>
+        </StackPanel>
 
         <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}">
 
