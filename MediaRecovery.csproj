@@ -21,6 +21,9 @@
     <Product>MediaRecovery Studio</Product>
     <Description>Suite profesional de recuperación forense de video ProRes, conversión optimizada y gestión de biblioteca.</Description>
     <Copyright>Copyright © 2026</Copyright>
+
+    <!-- Configuración para publicación Single-File autónomo con librerías nativas WPF -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <!-- Incrustar icono para la ventana y paquete de herramientas -->
