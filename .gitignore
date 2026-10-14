@@ -1,0 +1,26 @@
+## Build y Binarios de salida
+[Bb]in/
+[Oo]bj/
+publish*/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Herramientas binarias pesadas externas (ya empaquetadas en tools.zip si aplica)
+Resources/Tools/tools.zip
+*.exe
+*.dll
+*.pdb
+
+## Logs y temporales
+*.log
+.vs/
+.vscode/
+.idea/
+*.tmp
+*.bak
+__pycache__/
+*.mp4
+*.mov
+diff_summary.txt
