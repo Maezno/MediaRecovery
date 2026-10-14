@@ -12,13 +12,14 @@
 
 **MediaRecovery Studio** es una suite de escritorio integral diseñada para:
 1. **Recuperación forense de video ProRes dañado** (sin átomo `moov` o procedente de grabaciones interrumpidas en Blackmagic/Atomos).
-2. **Conversión y compresión optimizada** (perfil V5 CBR 25 Mbps, aceleración por hardware Nvidia/AMD/CPU, desentrelazado Yadif 25p/50p y recorte de fragmentos).
+2. **Conversión y compresión optimizada** (perfil V5 CBR 25 Mbps, aceleración por hardware Nvidia/AMD/CPU, desentrelazado inteligente 25p/50p y recorte de fragmentos).
 3. **Descargas desde YouTube y plataformas web** (integración transparente con `yt-dlp`).
 4. **Gestión avanzada de bibliotecas de video**:
    - Análisis de dispositivos y orientación (Prensa).
    - Detección de videos rotos o corruptos.
    - Búsqueda de videos pesados o sin compresión (ProRes, DNxHD, RAW).
    - Detección de duplicados (en una carpeta o comparando dos carpetas).
+5. **Actualizaciones automáticas integradas vía GitHub Releases** (`maezno/MediaRecovery`).
 
 ---
 
