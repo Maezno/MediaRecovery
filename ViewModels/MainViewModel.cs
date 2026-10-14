@@ -27,11 +27,41 @@ public class MainViewModel : ViewModelBase
     private double _updateDownloadProgress;
     private UpdateCheckResult? _lastUpdateResult;
 
-    public bool IsCheckingUpdate { get => _isCheckingUpdate; set => SetField(ref _isCheckingUpdate, value); }
-    public bool IsUpdating { get => _isUpdating; set => SetField(ref _isUpdating, value); }
+    public string AppVersionBadge => $"v{UpdateService.GetCurrentVersionString()} (.NET 10)";
+    public string AppTitle => $"MediaRecovery Studio v{UpdateService.GetCurrentVersionString()} (.NET 10)";
+    public bool HasUpdateAction => !string.IsNullOrWhiteSpace(UpdateButtonText);
+
+    public bool IsCheckingUpdate 
+    { 
+        get => _isCheckingUpdate; 
+        set 
+        { 
+            if (SetField(ref _isCheckingUpdate, value))
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        } 
+    }
+
+    public bool IsUpdating 
+    { 
+        get => _isUpdating; 
+        set 
+        { 
+            if (SetField(ref _isUpdating, value))
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        } 
+    }
+
     public bool HasUpdateNotice { get => _hasUpdateNotice; set => SetField(ref _hasUpdateNotice, value); }
     public string UpdateNoticeText { get => _updateNoticeText; set => SetField(ref _updateNoticeText, value); }
-    public string UpdateButtonText { get => _updateButtonText; set => SetField(ref _updateButtonText, value); }
+    public string UpdateButtonText 
+    { 
+        get => _updateButtonText; 
+        set 
+        { 
+            if (SetField(ref _updateButtonText, value))
+                OnPropertyChanged(nameof(HasUpdateAction));
+        } 
+    }
     public double UpdateDownloadProgress { get => _updateDownloadProgress; set => SetField(ref _updateDownloadProgress, value); }
 
     public System.Windows.Input.ICommand CheckUpdateCommand { get; }
@@ -40,8 +70,8 @@ public class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
-        CheckUpdateCommand = new RelayCommand(async _ => await CheckForUpdatesAsync(manual: true));
-        DownloadUpdateCommand = new RelayCommand(async _ => await ApplyUpdateAsync());
+        CheckUpdateCommand = new RelayCommand(async _ => await CheckForUpdatesAsync(manual: true), _ => !IsCheckingUpdate && !IsUpdating);
+        DownloadUpdateCommand = new RelayCommand(async _ => await ApplyUpdateAsync(), _ => !IsUpdating);
         DismissUpdateCommand = new RelayCommand(_ => HasUpdateNotice = false);
 
         Converter = new ConverterViewModel(filePath =>
@@ -87,9 +117,18 @@ public class MainViewModel : ViewModelBase
                 UpdateButtonText = $"Actualizar a v{result.LatestVersion}";
                 HasUpdateNotice = true;
             }
+            else if (!string.IsNullOrWhiteSpace(result.ReleaseNotes) && (result.ReleaseNotes.StartsWith("No se pudo", StringComparison.OrdinalIgnoreCase) || result.ReleaseNotes.StartsWith("Error", StringComparison.OrdinalIgnoreCase)))
+            {
+                if (manual)
+                {
+                    UpdateNoticeText = result.ReleaseNotes;
+                    UpdateButtonText = "";
+                    HasUpdateNotice = true;
+                }
+            }
             else if (manual)
             {
-                UpdateNoticeText = $"Tienes la última versión instalada (v{result.CurrentVersion}).";
+                UpdateNoticeText = $"Tienes la versión más reciente instalada (v{result.CurrentVersion}).";
                 UpdateButtonText = "";
                 HasUpdateNotice = true;
             }
