@@ -621,6 +621,85 @@
                             </Grid>
                         </TabItem>
 
+                        <!-- 2. BUSCADOR HORIZONTAL / VERTICAL -->
+                        <TabItem Header="📐 Buscador Horizontal / Vertical" FontSize="12">
+                            <Grid Margin="0,6,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Filtro de palabra y filtro de orientación -->
+                                <Border Grid.Row="0" Style="{StaticResource CardPanel}" Padding="8,6" Margin="0,0,0,6">
+                                    <WrapPanel VerticalAlignment="Center">
+                                        <StackPanel Style="{StaticResource FieldGroup}">
+                                            <TextBlock Text="Palabra a buscar:" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox Text="{Binding SearchWord, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                                        </StackPanel>
+                                        <StackPanel Style="{StaticResource FieldGroup}">
+                                            <TextBlock Text="Orientación:" Style="{StaticResource FieldLabel}"/>
+                                            <ComboBox ItemsSource="{Binding OrientationFilterList}" SelectedItem="{Binding SelectedOrientationFilter}" Width="120"/>
+                                        </StackPanel>
+                                        <Button Content="▶ Buscar videos" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,4"/>
+                                        <Button Content="⏹ Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" Margin="0,0,8,4"/>
+                                        <Button Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" Margin="0,0,6,4"/>
+                                        <Button Content="⚡ Enviar a Convertir" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding SendToConverterCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" Margin="0,0,6,4"/>
+                                    </WrapPanel>
+                                </Border>
+
+                                <!-- Barra de progreso y métricas -->
+                                <DockPanel Grid.Row="1" Margin="0,0,0,6">
+                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushAccent}"/>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushAccent}" FontWeight="SemiBold" FontSize="11" Margin="8,0,0,0"/>
+                                    <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                </DockPanel>
+
+                                <!-- Listado de resultados con filtro en tiempo real -->
+                                <Border Grid.Row="2" Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Padding="6">
+                                    <ListView ItemsSource="{Binding FilteredOrientationVideos}" SelectedItem="{Binding SelectedMetadataItem}" Background="Transparent" BorderThickness="0">
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <EventSetter Event="MouseDoubleClick" Handler="OnMetadataItemDoubleClicked"/>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="Archivo" DisplayMemberBinding="{Binding FileName}" Width="200"/>
+                                                <GridViewColumn Header="Orientación" Width="95">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding Orientation}">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Orientation}" Value="Vertical">
+                                                                                <Setter Property="Foreground" Value="#58A6FF"/>
+                                                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Orientation}" Value="Horizontal">
+                                                                                <Setter Property="Foreground" Value="#3FB950"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Header="Resolución" DisplayMemberBinding="{Binding Resolution}" Width="90"/>
+                                                <GridViewColumn Header="Duración" DisplayMemberBinding="{Binding DurationFormatted}" Width="75"/>
+                                                <GridViewColumn Header="Tamaño" DisplayMemberBinding="{Binding SizeFormatted}" Width="85"/>
+                                                <GridViewColumn Header="Dispositivo / Origen" DisplayMemberBinding="{Binding DeviceModel}" Width="160"/>
+                                                <GridViewColumn Header="Carpeta" DisplayMemberBinding="{Binding Directory}" Width="320"/>
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+
                         <!-- ──────── 2. BUSCADOR DE VIDEOS ROTOS O DAÑADOS ──────── -->
                         <TabItem Header="⚠️ Videos Rotos o Dañados" FontSize="12">
                             <Grid Margin="0,6,0,0">

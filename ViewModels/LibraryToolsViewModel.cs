@@ -24,14 +24,20 @@ public class LibraryToolsViewModel : ViewModelBase
 
     // Herramienta activa
     // 0 = Analizador Metadatos / Dispositivos
-    // 1 = Videos Rotos o Dañados
-    // 2 = Videos Sin Compresión / Pesados
-    // 3 = Buscador de Duplicados
+    // 1 = Buscador de Videos (Horizontal / Vertical)
+    // 2 = Videos Rotos o Dañados
+    // 3 = Videos Sin Compresión / Pesados
+    // 4 = Buscador de Duplicados
     private int _selectedToolIndex = 0;
 
     // Filtros de fecha (Analizador)
     private string _selectedMonth = "Todos";
     private string _selectedYear = "Todos";
+
+    // Filtros Buscador de Orientación
+    private string _searchWord = string.Empty;
+    private string _selectedOrientationFilter = "Todos";
+    public List<string> OrientationFilterList { get; } = ["Todos", "Horizontal", "Vertical"];
 
     // Opciones Videos Rotos
     private bool _deepDecodeCheck;
@@ -101,6 +107,30 @@ public class LibraryToolsViewModel : ViewModelBase
     public string SelectedMonth { get => _selectedMonth; set => SetField(ref _selectedMonth, value); }
     public string SelectedYear { get => _selectedYear; set => SetField(ref _selectedYear, value); }
 
+    public string SearchWord
+    {
+        get => _searchWord;
+        set
+        {
+            if (SetField(ref _searchWord, value))
+            {
+                OnPropertyChanged(nameof(FilteredOrientationVideos));
+            }
+        }
+    }
+
+    public string SelectedOrientationFilter
+    {
+        get => _selectedOrientationFilter;
+        set
+        {
+            if (SetField(ref _selectedOrientationFilter, value))
+            {
+                OnPropertyChanged(nameof(FilteredOrientationVideos));
+            }
+        }
+    }
+
     public bool DeepDecodeCheck { get => _deepDecodeCheck; set => SetField(ref _deepDecodeCheck, value); }
     public double MinBitrateMbps { get => _minBitrateMbps; set => SetField(ref _minBitrateMbps, value); }
     public double MinSizeGB { get => _minSizeGB; set => SetField(ref _minSizeGB, value); }
@@ -133,6 +163,31 @@ public class LibraryToolsViewModel : ViewModelBase
         {
             if (SelectedDeviceSummary == null) return MetadataItems;
             return MetadataItems.Where(x => x.DeviceModel.Equals(SelectedDeviceSummary.DeviceModel, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    public IEnumerable<VideoMetadataItem> FilteredOrientationVideos
+    {
+        get
+        {
+            IEnumerable<VideoMetadataItem> result = MetadataItems;
+
+            if (!string.IsNullOrWhiteSpace(SearchWord))
+            {
+                result = result.Where(x => x.FileName.Contains(SearchWord, StringComparison.OrdinalIgnoreCase) ||
+                                           x.Directory.Contains(SearchWord, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (SelectedOrientationFilter == "Vertical")
+            {
+                result = result.Where(x => x.Orientation.Equals("Vertical", StringComparison.OrdinalIgnoreCase));
+            }
+            else if (SelectedOrientationFilter == "Horizontal")
+            {
+                result = result.Where(x => x.Orientation.Equals("Horizontal", StringComparison.OrdinalIgnoreCase));
+            }
+
+            return result;
         }
     }
 
@@ -213,17 +268,22 @@ public class LibraryToolsViewModel : ViewModelBase
                     break;
 
                 case 1:
-                    // 2. Videos Rotos o Dañados
-                    await ExecuteBrokenVideosScanAsync(filesA, token);
+                    // 2. Buscador de Videos Horizontales / Verticales
+                    await ExecuteOrientationSearchScanAsync(filesA, token);
                     break;
 
                 case 2:
-                    // 3. Videos Sin Compresión / Pesados
-                    await ExecuteHeavyVideosScanAsync(filesA, token);
+                    // 3. Videos Rotos o Dañados
+                    await ExecuteBrokenVideosScanAsync(filesA, token);
                     break;
 
                 case 3:
-                    // 4. Buscador de Duplicados
+                    // 4. Videos Sin Compresión / Pesados
+                    await ExecuteHeavyVideosScanAsync(filesA, token);
+                    break;
+
+                case 4:
+                    // 5. Buscador de Duplicados
                     await ExecuteDuplicateScanAsync(filesA, token);
                     break;
             }
@@ -274,6 +334,33 @@ public class LibraryToolsViewModel : ViewModelBase
 
         StatusText = $"Análisis finalizado: {items.Count:N0} videos analizados.";
         MetricsText = $"{items.Count:N0} videos  •  {totalV:N0} verticales  •  {totalH:N0} horizontales  •  {summaries.Count} dispositivos";
+    }
+
+    private async Task ExecuteOrientationSearchScanAsync(List<string> files, CancellationToken token)
+    {
+        MetadataItems.Clear();
+
+        var items = await _libraryService.ScanMetadataAsync(
+            files,
+            filterMonth: null,
+            filterYear: null,
+            onProgress: (done, total, file) =>
+            {
+                ScanProgress = (done / (double)total) * 100.0;
+                StatusText = $"Analizando orientación ({done}/{total}): {file}";
+            },
+            cancellationToken: token);
+
+        if (token.IsCancellationRequested) return;
+
+        MetadataItems = new ObservableCollection<VideoMetadataItem>(items);
+        OnPropertyChanged(nameof(FilteredOrientationVideos));
+
+        int totalV = items.Count(x => x.Orientation.Equals("Vertical", StringComparison.OrdinalIgnoreCase));
+        int totalH = items.Count(x => x.Orientation.Equals("Horizontal", StringComparison.OrdinalIgnoreCase));
+
+        StatusText = $"Búsqueda lista: {items.Count:N0} videos analizados.";
+        MetricsText = $"{items.Count:N0} videos en total  •  {totalV:N0} verticales  •  {totalH:N0} horizontales";
     }
 
     private async Task ExecuteBrokenVideosScanAsync(List<string> files, CancellationToken token)
