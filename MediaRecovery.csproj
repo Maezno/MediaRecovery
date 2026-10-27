@@ -13,10 +13,10 @@
     <!-- Icono de la aplicación -->
     <ApplicationIcon>Resources\app_icon.ico</ApplicationIcon>
 
-    <!-- Metadatos de la v1.0.1 -->
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
+    <!-- Metadatos de la v1.0.2 -->
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
     <Company>MediaRecovery Studio</Company>
     <Product>MediaRecovery Studio</Product>
     <Description>Suite profesional de recuperación forense de video ProRes, conversión optimizada y gestión de biblioteca.</Description>
