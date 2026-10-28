@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using MediaRecovery.Models;
@@ -208,16 +208,5 @@ public class RecoveryViewModel : ViewModelBase
         }
     }
 
-    private void AppendLog(string message)
-    {
-        string entry = $"{DateTime.Now:HH:mm:ss} - {message}\n";
-        if (LogOutput.Length > 60_000)
-        {
-            LogOutput = LogOutput[^30_000..] + entry;
-        }
-        else
-        {
-            LogOutput += entry;
-        }
-    }
+    private void AppendLog(string message) => AppendLogEntry(ref _logOutput, message);
 }

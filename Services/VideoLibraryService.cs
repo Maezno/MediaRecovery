@@ -41,8 +41,6 @@ public partial class VideoLibraryService
         "mjpeg", "cineform", "cfhd", "ffv1", "qtrle"
     };
 
-    private static readonly byte[] MagicIcpf = [0x69, 0x63, 0x70, 0x66]; // 'icpf'
-
     [GeneratedRegex(@"adobe|premiere|after effects|media encoder|davinci|resolve|final cut|handbrake|ffmpeg|lavf|lavc|vegas|capcut|inshot|kdenlive|shotcut|camtasia|filmora|kinemaster|clipchamp|movavi|openshot|wondershare|canva|\bobs\b", RegexOptions.IgnoreCase)]
     private static partial Regex EditorRegex();
 
@@ -54,6 +52,9 @@ public partial class VideoLibraryService
 
     [GeneratedRegex(@"""com\.android\.camera\.takenmodel""\s*:\s*""([^""]+)""")]
     private static partial Regex VivoModelRegex();
+
+    [GeneratedRegex(@"\b(SM-[A-Z0-9]{4,8})\b", RegexOptions.IgnoreCase)]
+    private static partial Regex SamsungCodeRegex();
 
     // ─────────────────────────────────────────────────────────────────────────────
     // 1. RECOLECCIÓN DE ARCHIVOS
@@ -197,10 +198,12 @@ public partial class VideoLibraryService
                 if (filterMonth.HasValue && fi.LastWriteTime.Month != filterMonth.Value) return;
                 if (filterYear.HasValue && fi.LastWriteTime.Year != filterYear.Value) return;
 
-                // 1. Revisar caché persistente
+                // 1. Revisar caché persistente (re-analizar si la caché tenía un modelo genérico previo)
                 if (cache.TryGetValue(filePath, out var cached) &&
                     cached.SizeBytes == fi.Length &&
-                    Math.Abs((cached.DateModified - fi.LastWriteTime).TotalSeconds) < 2)
+                    Math.Abs((cached.DateModified - fi.LastWriteTime).TotalSeconds) < 2 &&
+                    !cached.DeviceModel.StartsWith("Samsung (Android", StringComparison.OrdinalIgnoreCase) &&
+                    !cached.DeviceModel.StartsWith("Android genérico", StringComparison.OrdinalIgnoreCase))
                 {
                     items.Add(new VideoMetadataItem
                     {
@@ -216,7 +219,7 @@ public partial class VideoLibraryService
                     return;
                 }
 
-                // 2. Si no está en caché, analizar con ffprobe
+                // 2. Si no está en caché, analizar con ffprobe + átomos MP4
                 var meta = await ProbeSingleVideoMetadataAsync(filePath, fi, ct);
                 if (meta != null)
                 {
@@ -253,7 +256,7 @@ public partial class VideoLibraryService
     private async Task<VideoMetadataItem?> ProbeSingleVideoMetadataAsync(string filePath, FileInfo fi, CancellationToken ct)
     {
         string args = $"-v error -print_format json -select_streams v -show_streams -show_format \"{filePath}\"";
-        var probe = await RunProcessCaptureAsync("ffprobe", args, ct);
+        var probe = await ProcessRunnerService.CaptureAsync("ffprobe", args, ct);
         if (string.IsNullOrWhiteSpace(probe.StdOut)) return null;
 
         try
@@ -417,7 +420,12 @@ public partial class VideoLibraryService
             return CleanModelString(r);
         }
 
-        // 3. major_brand y compatible_brands
+        // 3. Metadatos binarios MP4 (cajas Samsung udta/auth y smta/mdln, y Vivo uuid)
+        var (binModel, isSamsungContainer) = TryExtractBinaryMp4Device(filePath);
+        if (!string.IsNullOrEmpty(binModel))
+            return CleanModelString(binModel);
+
+        // 4. major_brand y compatible_brands
         string majorBrand = Get("major_brand").ToLowerInvariant();
         if (MajorBrandMap.TryGetValue(majorBrand, out var brandName))
             return brandName;
@@ -429,7 +437,7 @@ public partial class VideoLibraryService
                 return kvp.Value;
         }
 
-        // 4. Software / Editor
+        // 5. Software / Editor
         string software = Get("software", "encoder");
         if (!string.IsNullOrEmpty(software))
         {
@@ -442,17 +450,12 @@ public partial class VideoLibraryService
             return clean;
         }
 
-        // 5. Samsung por utc_offset
-        if (!string.IsNullOrEmpty(Get("com.samsung.android.utc_offset")))
+        // 6. Samsung por utc_offset o firma smta/smrd en contenedor
+        if (!string.IsNullOrEmpty(Get("com.samsung.android.utc_offset")) || isSamsungContainer)
         {
             string ver = Get("com.android.version");
             return !string.IsNullOrEmpty(ver) ? $"Samsung (Android {ver})" : "Samsung";
         }
-
-        // 6. Vivo (metadatos propietarios)
-        string vivoModel = TryExtractVivoModel(filePath);
-        if (!string.IsNullOrEmpty(vivoModel))
-            return CleanModelString(vivoModel);
 
         // 7. DJI
         string fileName = Path.GetFileName(filePath).ToLowerInvariant();
@@ -482,30 +485,134 @@ public partial class VideoLibraryService
         return text.Length > 70 ? text[..70] : text;
     }
 
-    private static string TryExtractVivoModel(string filePath)
+    private static (string Model, bool IsSamsungContainer) TryExtractBinaryMp4Device(string filePath)
     {
         try
         {
             var fi = new FileInfo(filePath);
-            if (fi.Length < 512) return string.Empty;
+            if (fi.Length < 512) return (string.Empty, false);
 
-            long readBytes = Math.Min(fi.Length, 131072);
-            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            fs.Seek(fi.Length - readBytes, SeekOrigin.Begin);
-            byte[] chunk = new byte[readBytes];
-            int read = fs.Read(chunk, 0, (int)readBytes);
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            int headLen = (int)Math.Min(fi.Length, 131072);
+            int tailLen = fi.Length > 131072 ? (int)Math.Min(fi.Length - 131072, 262144) : 0;
 
-            string text = Encoding.UTF8.GetString(chunk, 0, read);
-            var m = VivoExtInfoRegex().Match(text);
-            if (m.Success)
+            byte[] blob = new byte[headLen + tailLen];
+            int readHead = fs.Read(blob, 0, headLen);
+            int readTail = 0;
+            if (tailLen > 0)
             {
-                string payload = m.Groups[1].Value;
-                var modelMatch = VivoModelRegex().Match(payload);
-                if (modelMatch.Success) return modelMatch.Groups[1].Value.Trim();
+                fs.Seek(fi.Length - tailLen, SeekOrigin.Begin);
+                readTail = fs.Read(blob, readHead, tailLen);
+            }
+
+            ReadOnlySpan<byte> span = blob.AsSpan(0, readHead + readTail);
+
+            // 1. Buscar caja Samsung 'mdln' dentro de 'smta' ([size:4]['mdln'][modelo ASCII])
+            string mdln = string.Empty;
+            ReadOnlySpan<byte> mdlnSig = "mdln"u8;
+            int searchPos = 0;
+            while (searchPos <= span.Length - 8)
+            {
+                int idx = span[searchPos..].IndexOf(mdlnSig);
+                if (idx < 0) break;
+                int absIdx = searchPos + idx;
+                if (absIdx >= 4)
+                {
+                    int boxSize = (span[absIdx - 4] << 24) | (span[absIdx - 3] << 16) | (span[absIdx - 2] << 8) | span[absIdx - 1];
+                    if (boxSize is > 8 and <= 64 && absIdx - 4 + boxSize <= span.Length)
+                    {
+                        string candidate = Encoding.ASCII.GetString(span.Slice(absIdx + 4, boxSize - 8)).Trim('\0', ' ', '\t', '\r', '\n');
+                        if (!string.IsNullOrWhiteSpace(candidate))
+                        {
+                            mdln = candidate;
+                            break;
+                        }
+                    }
+                }
+                searchPos = absIdx + 4;
+            }
+
+            // 2. Buscar caja 3GPP/ISO 'auth' en 'udta' ('auth' + 4 bytes version/flags 0x00000000 + 2 bytes lang + UTF8 string\0)
+            string auth = string.Empty;
+            ReadOnlySpan<byte> authSig = "auth\0\0\0\0"u8;
+            int authIdx = span.IndexOf(authSig);
+            if (authIdx >= 0 && authIdx + 10 < span.Length)
+            {
+                int strStart = authIdx + 10;
+                int maxLen = Math.Min(64, span.Length - strStart);
+                int nullIdx = span.Slice(strStart, maxLen).IndexOf((byte)0);
+                if (nullIdx > 1)
+                {
+                    auth = Encoding.UTF8.GetString(span.Slice(strStart, nullIdx)).Trim();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(mdln) || !string.IsNullOrEmpty(auth))
+            {
+                string resolved = ResolveSamsungHardwareName(mdln, auth);
+                if (!string.IsNullOrEmpty(resolved))
+                    return (resolved, true);
+            }
+
+            // 3. Buscar metadatos propietarios de Vivo (uuidvivoMediaExtInfo)
+            if (span.IndexOf("vivoMediaExtInfo"u8) >= 0)
+            {
+                string text = Encoding.UTF8.GetString(span);
+                var m = VivoExtInfoRegex().Match(text);
+                if (m.Success)
+                {
+                    var modelMatch = VivoModelRegex().Match(m.Groups[1].Value);
+                    if (modelMatch.Success)
+                        return (modelMatch.Groups[1].Value.Trim(), false);
+                }
+            }
+
+            bool hasSamsungAtoms = span.IndexOf("smta"u8) >= 0 || span.IndexOf("smrdTRUEBLUE"u8) >= 0;
+            return (string.Empty, hasSamsungAtoms);
+        }
+        catch
+        {
+            return (string.Empty, false);
+        }
+    }
+
+    private static string ResolveSamsungHardwareName(string mdlnCode, string authName)
+    {
+        string code = mdlnCode.Trim();
+        if (string.IsNullOrEmpty(code) && !string.IsNullOrEmpty(authName))
+        {
+            var m = SamsungCodeRegex().Match(authName);
+            if (m.Success) code = m.Groups[1].Value.ToUpperInvariant();
+        }
+
+        if (!string.IsNullOrEmpty(code))
+        {
+            for (int len = code.Length; len >= 5; len--)
+            {
+                string prefix = code[..len];
+                if (SamsungModelMap.TryGetValue(prefix, out var commercialName))
+                {
+                    string galaxyName = commercialName.StartsWith("Galaxy", StringComparison.OrdinalIgnoreCase)
+                        ? commercialName
+                        : $"Galaxy {commercialName}";
+                    return $"Samsung {galaxyName} ({code})";
+                }
             }
         }
-        catch { }
-        return string.Empty;
+
+        if (!string.IsNullOrEmpty(authName))
+        {
+            string cleanAuth = authName;
+            if (cleanAuth.StartsWith("Galaxy ", StringComparison.OrdinalIgnoreCase))
+                cleanAuth = "Samsung " + cleanAuth;
+
+            if (!string.IsNullOrEmpty(code) && !cleanAuth.Contains(code, StringComparison.OrdinalIgnoreCase))
+                return $"{cleanAuth} ({code})";
+
+            return cleanAuth;
+        }
+
+        return !string.IsNullOrEmpty(code) ? $"Samsung ({code})" : string.Empty;
     }
 
     public List<DeviceSummaryItem> BuildDeviceSummaries(IEnumerable<VideoMetadataItem> items)
@@ -563,7 +670,7 @@ public partial class VideoLibraryService
                 }
 
                 // 1. Probar lectura de contenedor con ffprobe
-                var probe = await RunProcessCaptureAsync("ffprobe",
+                var probe = await ProcessRunnerService.CaptureAsync("ffprobe",
                     $"-v error -show_entries format=format_name,duration:stream=codec_type,codec_name -of json \"{filePath}\"",
                     ct);
 
@@ -571,7 +678,7 @@ public partial class VideoLibraryService
 
                 if (failed)
                 {
-                    bool isProRes = await ScanForProResMagicAsync(filePath, 32 * 1024 * 1024, ct);
+                    bool isProRes = await VideoIntegrityService.ScanForProResMagicAsync(filePath, 32 * 1024 * 1024, ct);
                     string reason = "Error de contenedor / cabecera inválida";
 
                     if (probe.StdErr.Contains("moov atom not found", StringComparison.OrdinalIgnoreCase))
@@ -600,7 +707,7 @@ public partial class VideoLibraryService
                 // 2. Decodificación rápida si se solicita deep check
                 if (deepDecodeCheck)
                 {
-                    var decode = await RunProcessCaptureAsync("ffmpeg",
+                    var decode = await ProcessRunnerService.CaptureAsync("ffmpeg",
                         $"-v error -xerror -i \"{filePath}\" -t 2 -f null -", ct);
 
                     if (decode.ExitCode != 0 || !string.IsNullOrWhiteSpace(decode.StdErr))
@@ -662,7 +769,7 @@ public partial class VideoLibraryService
 
                 double sizeGb = fi.Length / (1024.0 * 1024.0 * 1024.0);
 
-                var probe = await RunProcessCaptureAsync("ffprobe",
+                var probe = await ProcessRunnerService.CaptureAsync("ffprobe",
                     $"-v error -print_format json -select_streams v:0 -show_entries stream=codec_name,width,height,bit_rate:format=duration,bit_rate \"{filePath}\"",
                     ct);
 
@@ -880,79 +987,6 @@ public partial class VideoLibraryService
         {
             return Guid.NewGuid().ToString();
         }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // UTILIDADES COMUNES
-    // ─────────────────────────────────────────────────────────────────────────────
-
-    private static async Task<bool> ScanForProResMagicAsync(string filePath, int maxBytesToScan, CancellationToken ct)
-    {
-        try
-        {
-            await using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.SequentialScan | FileOptions.Asynchronous);
-            byte[] buffer = new byte[64 * 1024];
-            int totalScanned = 0;
-            byte[] tail = [];
-
-            while (totalScanned < maxBytesToScan && !ct.IsCancellationRequested)
-            {
-                int bytesRead = await fs.ReadAsync(buffer.AsMemory(0, buffer.Length), ct);
-                if (bytesRead == 0) break;
-
-                int combinedLen = tail.Length + bytesRead;
-                byte[] block = new byte[combinedLen];
-                Buffer.BlockCopy(tail, 0, block, 0, tail.Length);
-                Buffer.BlockCopy(buffer, 0, block, tail.Length, bytesRead);
-
-                if (block.AsSpan().IndexOf(MagicIcpf) >= 0)
-                {
-                    return true;
-                }
-
-                totalScanned += bytesRead;
-                int keep = Math.Min(combinedLen, 8);
-                tail = new byte[keep];
-                Buffer.BlockCopy(block, combinedLen - keep, tail, 0, keep);
-            }
-        }
-        catch { }
-        return false;
-    }
-
-    private static async Task<(int ExitCode, string StdOut, string StdErr)> RunProcessCaptureAsync(string fileName, string args, CancellationToken ct)
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = fileName,
-            Arguments = args,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8
-        };
-
-        using var proc = new Process { StartInfo = psi };
-        var sbOut = new StringBuilder();
-        var sbErr = new StringBuilder();
-
-        proc.OutputDataReceived += (_, e) => { if (e.Data != null) sbOut.AppendLine(e.Data); };
-        proc.ErrorDataReceived += (_, e) => { if (e.Data != null) sbErr.AppendLine(e.Data); };
-
-        if (!proc.Start()) return (-1, "", "No se pudo iniciar el proceso");
-
-        proc.BeginOutputReadLine();
-        proc.BeginErrorReadLine();
-
-        await using var reg = ct.Register(() =>
-        {
-            try { if (!proc.HasExited) proc.Kill(true); } catch { }
-        });
-
-        await proc.WaitForExitAsync(ct);
-        return (proc.ExitCode, sbOut.ToString().Trim(), sbErr.ToString().Trim());
     }
 
     // ─────────────────────────────────────────────────────────────────────────────

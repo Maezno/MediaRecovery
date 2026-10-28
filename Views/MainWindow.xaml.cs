@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,114 +16,75 @@ public partial class MainWindow : Window
 
     private void OnMetadataItemDoubleClicked(object sender, MouseButtonEventArgs e)
     {
-        if (sender is ListViewItem item && item.DataContext is VideoMetadataItem meta)
+        if (sender is ListViewItem { DataContext: VideoMetadataItem meta } && DataContext is MainViewModel vm)
         {
-            if (DataContext is MainViewModel vm)
-            {
-                vm.LibraryTools.OpenFileLocationCommand.Execute(meta.FilePath);
-            }
+            vm.LibraryTools.OpenFileLocationCommand.Execute(meta.FilePath);
         }
     }
 
-    #region Drag and Drop Handlers
-
-    private void GenericFileDragOver(DragEventArgs e)
+    private void OnFileDragOver(object sender, DragEventArgs e)
     {
-        if (e.Data.GetDataPresent(DataFormats.FileDrop))
-        {
-            e.Effects = DragDropEffects.Copy;
-            e.Handled = true;
-        }
-        else
-        {
-            e.Effects = DragDropEffects.None;
-        }
+        bool hasFiles = e.Data.GetDataPresent(DataFormats.FileDrop);
+        e.Effects = hasFiles ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Handled = hasFiles;
     }
 
-    // 1. Conversor - Archivo individual (selectivo: 1 archivo -> individual, >1 -> redirige a lote)
-    private void OnSingleFileDragOver(object sender, DragEventArgs e) => GenericFileDragOver(e);
+    private static string[]? GetDroppedPaths(DragEventArgs e) =>
+        e.Data.GetDataPresent(DataFormats.FileDrop) && e.Data.GetData(DataFormats.FileDrop) is string[] { Length: > 0 } paths
+            ? paths
+            : null;
+
+    private static string? GetDroppedFolder(DragEventArgs e)
+    {
+        var paths = GetDroppedPaths(e);
+        if (paths is null) return null;
+        string first = paths[0];
+        return Directory.Exists(first) ? first : Path.GetDirectoryName(first);
+    }
 
     private void OnSingleFileDrop(object sender, DragEventArgs e)
     {
-        if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
-            e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
+        if (GetDroppedPaths(e) is { } files && DataContext is MainViewModel vm)
         {
-            if (DataContext is MainViewModel vm)
-            {
-                vm.Converter.HandleSingleFileDrop(files);
-            }
+            vm.Converter.HandleSingleFileDrop(files);
             e.Handled = true;
         }
     }
-
-    // 2. Conversor - Procesamiento por lotes (admite simples y múltiples)
-    private void OnBatchFilesDragOver(object sender, DragEventArgs e) => GenericFileDragOver(e);
 
     private void OnBatchFilesDrop(object sender, DragEventArgs e)
     {
-        if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
-            e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
+        if (GetDroppedPaths(e) is { } files && DataContext is MainViewModel vm)
         {
-            if (DataContext is MainViewModel vm)
-            {
-                vm.Converter.HandleBatchFilesDrop(files);
-            }
+            vm.Converter.HandleBatchFilesDrop(files);
             e.Handled = true;
         }
     }
-
-    // 3. Recuperación ProRes
-    private void OnRecoveryFileDragOver(object sender, DragEventArgs e) => GenericFileDragOver(e);
 
     private void OnRecoveryFileDrop(object sender, DragEventArgs e)
     {
-        if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
-            e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
+        var firstFile = GetDroppedPaths(e)?.FirstOrDefault(f => !Directory.Exists(f) && File.Exists(f));
+        if (firstFile != null && DataContext is MainViewModel vm)
         {
-            string? firstFile = files.FirstOrDefault(f => !System.IO.Directory.Exists(f) && System.IO.File.Exists(f));
-            if (firstFile != null && DataContext is MainViewModel vm)
-            {
-                vm.Recovery.SetSourceFile(firstFile);
-            }
+            vm.Recovery.SetSourceFile(firstFile);
             e.Handled = true;
         }
     }
-
-    // 4. Biblioteca - Carpeta A
-    private void OnFolderADragOver(object sender, DragEventArgs e) => GenericFileDragOver(e);
 
     private void OnFolderADrop(object sender, DragEventArgs e)
     {
-        if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
-            e.Data.GetData(DataFormats.FileDrop) is string[] items && items.Length > 0)
+        if (GetDroppedFolder(e) is { Length: > 0 } folder && DataContext is MainViewModel vm)
         {
-            string first = items[0];
-            string folder = System.IO.Directory.Exists(first) ? first : (System.IO.Path.GetDirectoryName(first) ?? "");
-            if (!string.IsNullOrWhiteSpace(folder) && DataContext is MainViewModel vm)
-            {
-                vm.LibraryTools.FolderPathA = folder;
-            }
+            vm.LibraryTools.FolderPathA = folder;
             e.Handled = true;
         }
     }
-
-    // 5. Duplicados - Carpeta B
-    private void OnFolderBDragOver(object sender, DragEventArgs e) => GenericFileDragOver(e);
 
     private void OnFolderBDrop(object sender, DragEventArgs e)
     {
-        if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
-            e.Data.GetData(DataFormats.FileDrop) is string[] items && items.Length > 0)
+        if (GetDroppedFolder(e) is { Length: > 0 } folder && DataContext is MainViewModel vm)
         {
-            string first = items[0];
-            string folder = System.IO.Directory.Exists(first) ? first : (System.IO.Path.GetDirectoryName(first) ?? "");
-            if (!string.IsNullOrWhiteSpace(folder) && DataContext is MainViewModel vm)
-            {
-                vm.LibraryTools.FolderPathB = folder;
-            }
+            vm.LibraryTools.FolderPathB = folder;
             e.Handled = true;
         }
     }
-
-    #endregion
 }

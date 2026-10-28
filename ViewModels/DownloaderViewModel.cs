@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -175,36 +175,5 @@ public class DownloaderViewModel : ViewModelBase
         }
     }
 
-    private void AppendLog(string message)
-    {
-        string entry = $"{DateTime.Now:HH:mm:ss} - {message}\n";
-        if (LogOutput.Length > 60_000)
-        {
-            LogOutput = LogOutput[^30_000..] + entry;
-        }
-        else
-        {
-            LogOutput += entry;
-        }
-    }
-}
-
-public class RelayCommand : ICommand
-{
-    private readonly Action<object?> _execute;
-    private readonly Predicate<object?>? _canExecute;
-
-    public RelayCommand(Action<object?> execute, Predicate<object?>? canExecute = null)
-    {
-        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-        _canExecute = canExecute;
-    }
-
-    public bool CanExecute(object? parameter) => _canExecute?.Invoke(parameter) ?? true;
-    public void Execute(object? parameter) => _execute(parameter);
-    public event EventHandler? CanExecuteChanged
-    {
-        add => CommandManager.RequerySuggested += value;
-        remove => CommandManager.RequerySuggested -= value;
-    }
+    private void AppendLog(string message) => AppendLogEntry(ref _logOutput, message);
 }

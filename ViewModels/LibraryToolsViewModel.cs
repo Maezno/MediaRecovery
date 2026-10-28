@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -454,22 +454,8 @@ public class LibraryToolsViewModel : ViewModelBase
 
     private void OpenFileInExplorer(string? filePath)
     {
-        if (string.IsNullOrWhiteSpace(filePath)) return;
-        try
-        {
-            if (File.Exists(filePath))
-            {
-                Process.Start("explorer.exe", $"/select,\"{filePath}\"");
-            }
-            else if (Directory.Exists(filePath))
-            {
-                Process.Start("explorer.exe", $"\"{filePath}\"");
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"No se pudo abrir la ubicación: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        try { OpenPathInExplorer(filePath); }
+        catch (Exception ex) { MessageBox.Show($"No se pudo abrir la ubicación: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
     private void SendToRepair(string? filePath)

@@ -5,6 +5,44 @@ namespace MediaRecovery.Services;
 
 public class ProcessRunnerService
 {
+    private static ProcessStartInfo CreateStartInfo(string fileName, string arguments) => new()
+    {
+        FileName = fileName,
+        Arguments = arguments,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false,
+        CreateNoWindow = true,
+        StandardOutputEncoding = Encoding.UTF8,
+        StandardErrorEncoding = Encoding.UTF8
+    };
+
+    public static async Task<(int ExitCode, string StdOut, string StdErr)> CaptureAsync(
+        string fileName,
+        string arguments,
+        CancellationToken ct = default)
+    {
+        using var proc = new Process { StartInfo = CreateStartInfo(fileName, arguments) };
+        var sbOut = new StringBuilder();
+        var sbErr = new StringBuilder();
+
+        proc.OutputDataReceived += (_, e) => { if (e.Data != null) sbOut.AppendLine(e.Data); };
+        proc.ErrorDataReceived += (_, e) => { if (e.Data != null) sbErr.AppendLine(e.Data); };
+
+        if (!proc.Start()) return (-1, "", "No se pudo iniciar el proceso");
+
+        proc.BeginOutputReadLine();
+        proc.BeginErrorReadLine();
+
+        await using var reg = ct.Register(() =>
+        {
+            try { if (!proc.HasExited) proc.Kill(true); } catch { }
+        });
+
+        await proc.WaitForExitAsync(ct);
+        return (proc.ExitCode, sbOut.ToString().Trim(), sbErr.ToString().Trim());
+    }
+
     public async Task<int> RunAsync(
         string fileName,
         string arguments,
@@ -13,19 +51,7 @@ public class ProcessRunnerService
         Action<double>? onProgressPercentage = null,
         CancellationToken cancellationToken = default)
     {
-        var psi = new ProcessStartInfo
-        {
-            FileName = fileName,
-            Arguments = arguments,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8
-        };
-
-        using var process = new Process { StartInfo = psi };
+        using var process = new Process { StartInfo = CreateStartInfo(fileName, arguments) };
 
         process.OutputDataReceived += (_, e) =>
         {
@@ -60,10 +86,7 @@ public class ProcessRunnerService
                         process.Kill(entireProcessTree: true);
                     }
                 }
-                catch
-                {
-                    // Ignorar si ya terminó
-                }
+                catch { }
             });
 
             await process.WaitForExitAsync(cancellationToken);
@@ -84,7 +107,7 @@ public class ProcessRunnerService
         {
             int pctIdx = line.IndexOf('%');
             int spaceBefore = line.LastIndexOf(' ', pctIdx - 1);
-            if (spaceBefore != -1 && double.TryParse(line.Substring(spaceBefore + 1, pctIdx - spaceBefore - 1), 
+            if (spaceBefore != -1 && double.TryParse(line.Substring(spaceBefore + 1, pctIdx - spaceBefore - 1),
                 System.Globalization.CultureInfo.InvariantCulture, out double pct))
             {
                 onProgressPercentage(pct);

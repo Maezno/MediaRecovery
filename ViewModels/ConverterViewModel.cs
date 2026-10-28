@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -97,13 +97,7 @@ public class ConverterViewModel : ViewModelBase
     public bool HasLastOutput => !string.IsNullOrWhiteSpace(LastOutputPath) && (File.Exists(LastOutputPath) || Directory.Exists(LastOutputPath));
     public ICommand OpenOutputCommand { get; }
 
-    private void OpenOutput()
-    {
-        if (File.Exists(LastOutputPath))
-            System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{LastOutputPath}\"");
-        else if (Directory.Exists(LastOutputPath))
-            System.Diagnostics.Process.Start("explorer.exe", $"\"{LastOutputPath}\"");
-    }
+    private void OpenOutput() => OpenPathInExplorer(LastOutputPath);
 
     public string SourceFile
     {
@@ -598,16 +592,5 @@ public class ConverterViewModel : ViewModelBase
         }
     }
 
-    private void AppendLog(string message)
-    {
-        string entry = $"{DateTime.Now:HH:mm:ss} - {message}\n";
-        if (LogOutput.Length > 60_000)
-        {
-            LogOutput = LogOutput[^30_000..] + entry;
-        }
-        else
-        {
-            LogOutput += entry;
-        }
-    }
+    private void AppendLog(string message) => AppendLogEntry(ref _logOutput, message);
 }

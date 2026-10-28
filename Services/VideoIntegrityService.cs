@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 namespace MediaRecovery.Services;
 
@@ -41,15 +39,14 @@ public class VideoIntegrityService
             }
 
             // 1. Probar contenedor con ffprobe
-            var probeResult = await RunProcessCaptureAsync("ffprobe", 
-                $"-v error -show_entries format=format_name,duration:stream=codec_type,codec_name -of json \"{filePath}\"", 
+            var probeResult = await ProcessRunnerService.CaptureAsync("ffprobe",
+                $"-v error -show_entries format=format_name,duration:stream=codec_type,codec_name -of json \"{filePath}\"",
                 cancellationToken);
 
             bool probeFailed = probeResult.ExitCode != 0 || !string.IsNullOrWhiteSpace(probeResult.StdErr);
 
             if (probeFailed)
             {
-                // Error en el contenedor / cabecera
                 bool containsIcpf = await ScanForProResMagicAsync(filePath, maxBytesToScan: 64 * 1024 * 1024, cancellationToken);
                 result.HasErrors = true;
                 result.IsProResCandidate = containsIcpf;
@@ -72,7 +69,7 @@ public class VideoIntegrityService
                 else
                 {
                     result.Title = "Fallas detectadas en el archivo de video";
-                    result.Description = string.IsNullOrWhiteSpace(shortError) 
+                    result.Description = string.IsNullOrWhiteSpace(shortError)
                         ? "El archivo está incompleto o dañado y no puede ser procesado directamente."
                         : $"FFmpeg reportó fallas de lectura: \"{shortError}\". Se recomienda repararlo antes de convertir.";
                 }
@@ -81,8 +78,8 @@ public class VideoIntegrityService
             }
 
             // 2. Si el contenedor abrió, hacer prueba rápida de decodificación de los primeros segundos
-            var decodeResult = await RunProcessCaptureAsync("ffmpeg", 
-                $"-v error -xerror -i \"{filePath}\" -t 3 -f null -", 
+            var decodeResult = await ProcessRunnerService.CaptureAsync("ffmpeg",
+                $"-v error -xerror -i \"{filePath}\" -t 3 -f null -",
                 cancellationToken);
 
             if (decodeResult.ExitCode != 0 || !string.IsNullOrWhiteSpace(decodeResult.StdErr))
@@ -98,7 +95,6 @@ public class VideoIntegrityService
                 return result;
             }
 
-            // Sin fallas detectadas
             result.HasErrors = false;
             return result;
         }
@@ -115,7 +111,7 @@ public class VideoIntegrityService
         }
     }
 
-    private static async Task<bool> ScanForProResMagicAsync(string filePath, int maxBytesToScan, CancellationToken ct)
+    public static async Task<bool> ScanForProResMagicAsync(string filePath, int maxBytesToScan, CancellationToken ct)
     {
         try
         {
@@ -145,10 +141,7 @@ public class VideoIntegrityService
                 Buffer.BlockCopy(block, combinedLen - keep, tail, 0, keep);
             }
         }
-        catch
-        {
-            // Ignorar errores de acceso
-        }
+        catch { }
 
         return false;
     }
@@ -158,44 +151,8 @@ public class VideoIntegrityService
         if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
         var lines = raw.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (lines.Length == 0) return string.Empty;
-        
+
         string line = lines[0];
-        if (line.Length > 120) line = line[..120] + "...";
-        return line;
-    }
-
-    private static async Task<(int ExitCode, string StdOut, string StdErr)> RunProcessCaptureAsync(string fileName, string args, CancellationToken ct)
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = fileName,
-            Arguments = args,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8
-        };
-
-        using var proc = new Process { StartInfo = psi };
-        var sbOut = new StringBuilder();
-        var sbErr = new StringBuilder();
-
-        proc.OutputDataReceived += (_, e) => { if (e.Data != null) sbOut.AppendLine(e.Data); };
-        proc.ErrorDataReceived += (_, e) => { if (e.Data != null) sbErr.AppendLine(e.Data); };
-
-        if (!proc.Start()) return (-1, "", "No se pudo iniciar el proceso");
-
-        proc.BeginOutputReadLine();
-        proc.BeginErrorReadLine();
-
-        await using var reg = ct.Register(() =>
-        {
-            try { if (!proc.HasExited) proc.Kill(true); } catch { }
-        });
-
-        await proc.WaitForExitAsync(ct);
-        return (proc.ExitCode, sbOut.ToString().Trim(), sbErr.ToString().Trim());
+        return line.Length > 120 ? line[..120] + "..." : line;
     }
 }

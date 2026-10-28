@@ -1,4 +1,4 @@
-<Window x:Class="MediaRecovery.Views.MainWindow"
+﻿<Window x:Class="MediaRecovery.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,8 +8,8 @@
         mc:Ignorable="d"
         Title="{Binding AppTitle}"
         Icon="/Resources/app_icon.ico"
-        Height="700" Width="980"
-        MinHeight="480" MinWidth="560"
+        Height="740" Width="1060"
+        MinHeight="540" MinWidth="720"
         MaxHeight="{x:Static SystemParameters.MaximizedPrimaryScreenHeight}"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BrushBgPrimary}">
@@ -32,11 +32,11 @@
         </Style>
         <Style x:Key="FieldGroup" TargetType="StackPanel">
             <Setter Property="Orientation" Value="Horizontal"/>
-            <Setter Property="Margin" Value="0,0,18,6"/>
+            <Setter Property="Margin" Value="0,0,12,6"/>
         </Style>
         <Style x:Key="LogBox" TargetType="Border">
-            <Setter Property="Background" Value="#090D13"/>
-            <Setter Property="BorderBrush" Value="#252D38"/>
+            <Setter Property="Background" Value="{StaticResource BrushBgLog}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrushBorderSoft}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="10,8"/>
@@ -50,7 +50,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="10,8,10,10">
+    <Grid Margin="16,10,16,14">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -60,8 +60,8 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,6">
             <DockPanel>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="MediaRecovery Studio" FontSize="17" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" VerticalAlignment="Center"/>
-                    <Border Background="#21262D" CornerRadius="4" Margin="10,0,0,0" Padding="6,1" VerticalAlignment="Center">
+                    <TextBlock Text="MediaRecovery Studio" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
+                    <Border Background="{StaticResource BrushBgTertiary}" CornerRadius="4" Margin="10,0,0,0" Padding="6,1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding AppVersionBadge}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}"/>
                     </Border>
                 </StackPanel>
@@ -79,7 +79,7 @@
 
             <!-- Banner flotante de aviso de actualización disponible -->
             <Border Visibility="{Binding HasUpdateNotice, Converter={StaticResource BoolToVis}}" 
-                    Background="#162235" 
+                    Background="{StaticResource BrushAccentSoft}" 
                     BorderBrush="{StaticResource BrushAccent}" 
                     BorderThickness="1" 
                     CornerRadius="6" 
@@ -98,8 +98,8 @@
                     <Button DockPanel.Dock="Right" 
                             Content="{Binding UpdateButtonText}" 
                             Style="{StaticResource PrimaryButtonStyle}" 
-                            Background="#238636" 
-                            BorderBrush="#2EA043" 
+                            Background="{StaticResource BrushSuccessStrong}" 
+                            BorderBrush="{StaticResource BrushSuccessStrong}" 
                             Command="{Binding DownloadUpdateCommand}" 
                             Visibility="{Binding HasUpdateAction, Converter={StaticResource BoolToVis}}"
                             Padding="10,3" 
@@ -110,7 +110,7 @@
 
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding UpdateNoticeText}" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" FontWeight="SemiBold"/>
-                        <ProgressBar Height="4" Value="{Binding UpdateDownloadProgress}" Maximum="100" Margin="0,4,0,0" Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVis}}" Foreground="{StaticResource BrushSuccess}" Background="#21262D"/>
+                        <ProgressBar Height="4" Value="{Binding UpdateDownloadProgress}" Maximum="100" Margin="0,4,0,0" Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVis}}" Foreground="{StaticResource BrushSuccess}" Background="{StaticResource BrushBgTertiary}"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -124,7 +124,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" MinHeight="120"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="170" MinHeight="90"/>
+                        <RowDefinition Height="145" MinHeight="85"/>
                     </Grid.RowDefinitions>
 
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -174,19 +174,19 @@
                                     <WrapPanel IsEnabled="{Binding DownloadCut}">
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="Desde:" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding StartH}" Width="36" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding StartH}" Width="42" TextAlignment="Center"/>
                                             <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                            <TextBox Text="{Binding StartM}" Width="36" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding StartM}" Width="42" TextAlignment="Center"/>
                                             <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                            <TextBox Text="{Binding StartS}" Width="36" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding StartS}" Width="42" TextAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="Hasta:" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding EndH}" Width="36" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding EndH}" Width="42" TextAlignment="Center"/>
                                             <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                            <TextBox Text="{Binding EndM}" Width="36" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding EndM}" Width="42" TextAlignment="Center"/>
                                             <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                            <TextBox Text="{Binding EndS}" Width="36" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding EndS}" Width="42" TextAlignment="Center"/>
                                         </StackPanel>
                                     </WrapPanel>
                                 </StackPanel>
@@ -202,11 +202,11 @@
                             <Button Content="Iniciar Descarga" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartDownloadCommand}" MinWidth="140" Margin="0,0,8,4"/>
                             <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" MinWidth="90" Margin="0,0,8,4"/>
                         </WrapPanel>
-                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushAccent}"/>
+                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
                         <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
                         <Border Style="{StaticResource LogBox}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto" helpers:ScrollViewerExtensions.AutoScrollToEnd="True">
-                                <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="#A5D6FF" LineHeight="18" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{StaticResource BrushLogText}" LineHeight="18" TextWrapping="Wrap"/>
                             </ScrollViewer>
                         </Border>
                     </DockPanel>
@@ -224,17 +224,17 @@
 
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,0,4,0">
-                            <Border Style="{StaticResource CardPanel}" AllowDrop="True" DragOver="OnRecoveryFileDragOver" Drop="OnRecoveryFileDrop">
+                            <Border Style="{StaticResource CardPanel}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnRecoveryFileDrop">
                                 <StackPanel>
                                     <TextBlock Text="1. Archivo dañado / imagen raw (.mov, .raw, .img, .bin - Arrastrá aquí)" Style="{StaticResource SectionTitle}"/>
                                     <DockPanel>
                                         <Button DockPanel.Dock="Right" Content="Examinar..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFileCommand}"/>
-                                        <TextBox Text="{Binding SourceFilePath, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnRecoveryFileDragOver" Drop="OnRecoveryFileDrop" Margin="0,0,8,0"/>
+                                        <TextBox Text="{Binding SourceFilePath, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnRecoveryFileDrop" Margin="0,0,8,0"/>
                                     </DockPanel>
                                     <WrapPanel Margin="0,8,0,0">
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="Buffer (MB):" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding BufferSizeMB}" Width="50" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding BufferSizeMB}" Width="58" TextAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="Frame mín (bytes):" Style="{StaticResource FieldLabel}"/>
@@ -269,7 +269,7 @@
                     <GridSplitter Grid.Row="1" Style="{StaticResource Splitter}"/>
 
                     <DockPanel Grid.Row="2">
-                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushSuccess}"/>
+                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushSuccess}"/>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
                             <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushAccent}" FontWeight="SemiBold" Margin="8,0,0,0"/>
                             <TextBlock Text="{Binding ScanStatus}" Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"/>
@@ -281,7 +281,7 @@
                                 <ColumnDefinition Width="6"/>
                                 <ColumnDefinition Width="1.4*" MinWidth="160"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6">
+                            <Border Grid.Column="0" Style="{StaticResource TablePanel}">
                                 <ListView ItemsSource="{Binding DiscoveredFrames}" Background="Transparent" BorderThickness="0">
                                     <ListView.View>
                                         <GridView>
@@ -294,7 +294,7 @@
                             <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
                             <Border Grid.Column="2" Style="{StaticResource LogBox}">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" helpers:ScrollViewerExtensions.AutoScrollToEnd="True">
-                                    <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="#A5D6FF" LineHeight="18" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{StaticResource BrushLogText}" LineHeight="18" TextWrapping="Wrap"/>
                                 </ScrollViewer>
                             </Border>
                         </Grid>
@@ -308,7 +308,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" MinHeight="140"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="160" MinHeight="90"/>
+                        <RowDefinition Height="135" MinHeight="85"/>
                     </Grid.RowDefinitions>
 
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -318,11 +318,11 @@
                             <Border Style="{StaticResource CardPanel}" Padding="8,4,8,10">
                                 <TabControl Background="Transparent" SelectedIndex="{Binding SelectedSubTabIndex}">
                                     <TabItem Header="Archivo individual" FontSize="13" Padding="10,6">
-                                        <StackPanel Margin="4,10,4,0" AllowDrop="True" DragOver="OnSingleFileDragOver" Drop="OnSingleFileDrop">
+                                        <StackPanel Margin="4,10,4,0" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnSingleFileDrop">
                                             <TextBlock Text="Origen (MP4, MOV, MKV, AVI, MXF, ProRes... Arrastrá aquí uno o varios)" Style="{StaticResource FieldLabel}" Margin="0,0,0,4"/>
                                             <DockPanel Margin="0,0,0,6">
                                                 <Button DockPanel.Dock="Right" Content="Examinar..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseSourceFileCommand}"/>
-                                                <TextBox Text="{Binding SourceFile, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnSingleFileDragOver" Drop="OnSingleFileDrop" Margin="0,0,8,0"/>
+                                                <TextBox Text="{Binding SourceFile, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnSingleFileDrop" Margin="0,0,8,0"/>
                                             </DockPanel>
 
                                             <!-- Estado de comprobación de integridad -->
@@ -333,8 +333,8 @@
 
                                             <!-- Alerta de archivo dañado / recomendación de reparación -->
                                             <Border Margin="0,0,0,8" 
-                                                    Background="#261A1A" 
-                                                    BorderBrush="#F85149" 
+                                                    Background="{StaticResource BrushDangerSoft}" 
+                                                    BorderBrush="{StaticResource BrushDanger}" 
                                                     BorderThickness="1" 
                                                     CornerRadius="6" 
                                                     Padding="10,8"
@@ -347,15 +347,15 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0" Text="⚠️" FontSize="18" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
-                                                        <TextBlock Text="{Binding InputWarningTitle}" FontWeight="Bold" Foreground="#FFA198" FontSize="12"/>
+                                                        <TextBlock Text="{Binding InputWarningTitle}" FontWeight="Bold" Foreground="{StaticResource BrushDanger}" FontSize="12"/>
                                                         <TextBlock Text="{Binding InputWarningMessage}" Foreground="{StaticResource BrushTextPrimary}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                                     </StackPanel>
                                                     <Button Grid.Column="2" 
                                                             Content="🔧 Reparar archivo" 
                                                             Style="{StaticResource PrimaryButtonStyle}" 
                                                             Command="{Binding NavigateToRepairCommand}"
-                                                            Background="#DA3633"
-                                                            BorderBrush="#F85149"
+                                                            Background="{StaticResource BrushDangerStrong}"
+                                                            BorderBrush="{StaticResource BrushDanger}"
                                                             VerticalAlignment="Center"
                                                             Padding="12,6"
                                                             FontWeight="SemiBold"
@@ -377,34 +377,34 @@
                                             <WrapPanel IsEnabled="{Binding ConvertCut}">
                                                 <StackPanel Style="{StaticResource FieldGroup}">
                                                     <TextBlock Text="Desde:" Style="{StaticResource FieldLabel}"/>
-                                                    <TextBox Text="{Binding StartH}" Width="36" TextAlignment="Center"/>
+                                                    <TextBox Text="{Binding StartH}" Width="42" TextAlignment="Center"/>
                                                     <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                                    <TextBox Text="{Binding StartM}" Width="36" TextAlignment="Center"/>
+                                                    <TextBox Text="{Binding StartM}" Width="42" TextAlignment="Center"/>
                                                     <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                                    <TextBox Text="{Binding StartS}" Width="36" TextAlignment="Center"/>
+                                                    <TextBox Text="{Binding StartS}" Width="42" TextAlignment="Center"/>
                                                 </StackPanel>
                                                 <StackPanel Style="{StaticResource FieldGroup}">
                                                     <TextBlock Text="Hasta:" Style="{StaticResource FieldLabel}"/>
-                                                    <TextBox Text="{Binding EndH}" Width="36" TextAlignment="Center"/>
+                                                    <TextBox Text="{Binding EndH}" Width="42" TextAlignment="Center"/>
                                                     <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                                    <TextBox Text="{Binding EndM}" Width="36" TextAlignment="Center"/>
+                                                    <TextBox Text="{Binding EndM}" Width="42" TextAlignment="Center"/>
                                                     <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                                    <TextBox Text="{Binding EndS}" Width="36" TextAlignment="Center"/>
+                                                    <TextBox Text="{Binding EndS}" Width="42" TextAlignment="Center"/>
                                                 </StackPanel>
                                             </WrapPanel>
                                         </StackPanel>
                                     </TabItem>
 
                                     <TabItem Header="Procesamiento por lotes" FontSize="13" Padding="10,6">
-                                        <StackPanel Margin="4,10,4,0" AllowDrop="True" DragOver="OnBatchFilesDragOver" Drop="OnBatchFilesDrop">
+                                        <StackPanel Margin="4,10,4,0" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnBatchFilesDrop">
                                             <WrapPanel Margin="0,0,0,6">
                                                 <Button Content="Agregar videos..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding AddBatchFilesCommand}" Margin="0,0,8,4"/>
                                                 <Button Content="Quitar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding RemoveBatchItemCommand}" Margin="0,0,8,4"/>
                                                 <Button Content="Limpiar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ClearBatchCommand}" Margin="0,0,8,4"/>
                                                 <TextBlock Text="(Arrastrá archivos simples o múltiples aquí)" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="6,0,0,4" FontSize="11.5"/>
                                             </WrapPanel>
-                                            <Border Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Height="130" Margin="0,0,0,8" AllowDrop="True" DragOver="OnBatchFilesDragOver" Drop="OnBatchFilesDrop">
-                                                <ListView ItemsSource="{Binding BatchItems}" SelectedItem="{Binding SelectedBatchItem}" Background="Transparent" BorderThickness="0" AllowDrop="True" DragOver="OnBatchFilesDragOver" Drop="OnBatchFilesDrop">
+                                            <Border Style="{StaticResource TablePanel}" Height="130" Margin="0,0,0,8" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnBatchFilesDrop">
+                                                <ListView ItemsSource="{Binding BatchItems}" SelectedItem="{Binding SelectedBatchItem}" Background="Transparent" BorderThickness="0" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnBatchFilesDrop">
                                                     <ListView.View>
                                                         <GridView>
                                                             <GridViewColumn Header="Archivo" DisplayMemberBinding="{Binding FileName}" Width="220"/>
@@ -446,11 +446,11 @@
                                         </StackPanel>
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="Bitrate (Mb/s):" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding BitrateMbps}" Width="50" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding BitrateMbps}" Width="58" TextAlignment="Center"/>
                                         </StackPanel>
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="GPU:" Style="{StaticResource FieldLabel}"/>
-                                            <ComboBox SelectedValue="{Binding SelectedGpu}" SelectedValuePath="Content" Width="150">
+                                            <ComboBox SelectedValue="{Binding SelectedGpu}" SelectedValuePath="Content" Width="180">
                                                 <ComboBoxItem Content="Auto (Recomendado)" IsSelected="True"/>
                                                 <ComboBoxItem Content="Nvidia (NVENC V5)"/>
                                                 <ComboBoxItem Content="AMD (AMF)"/>
@@ -485,19 +485,19 @@
                             <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" MinWidth="90" Margin="0,0,8,4"/>
                             <Button Content="📂 Ir al archivo convertido" 
                                     Style="{StaticResource PrimaryButtonStyle}" 
-                                    Background="#238636" 
-                                    BorderBrush="#2EA043" 
+                                    Background="{StaticResource BrushSuccessStrong}" 
+                                    BorderBrush="{StaticResource BrushSuccessStrong}" 
                                     Command="{Binding OpenOutputCommand}" 
                                     Visibility="{Binding HasLastOutput, Converter={StaticResource BoolToVis}}" 
                                     MinWidth="160" 
                                     Margin="8,0,8,4" 
                                     ToolTip="Abrir la ubicación del archivo o carpeta de salida en el Explorador"/>
                         </WrapPanel>
-                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushAccent}"/>
+                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
                         <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
                         <Border Style="{StaticResource LogBox}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto" helpers:ScrollViewerExtensions.AutoScrollToEnd="True">
-                                <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="#A5D6FF" LineHeight="18" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{StaticResource BrushLogText}" LineHeight="18" TextWrapping="Wrap"/>
                             </ScrollViewer>
                         </Border>
                     </DockPanel>
@@ -513,24 +513,22 @@
                     </Grid.RowDefinitions>
 
                     <!-- Selector de carpeta principal compartido -->
-                    <Border Grid.Row="0" Style="{StaticResource CardPanel}" Margin="0,0,0,8" Padding="10,8" AllowDrop="True" DragOver="OnFolderADragOver" Drop="OnFolderADrop">
-                        <StackPanel>
-                            <DockPanel Margin="0,0,0,4">
-                                <TextBlock Text="Carpeta de origen a analizar (Arrastrá aquí una carpeta)" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
-                                <CheckBox DockPanel.Dock="Right" Content="Incluir subcarpetas (recursivo)" IsChecked="{Binding IsRecursive}" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                            </DockPanel>
-                            <DockPanel>
-                                <Button DockPanel.Dock="Right" Content="Examinar..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFolderACommand}"/>
-                                <TextBox Text="{Binding FolderPathA, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFolderADragOver" Drop="OnFolderADrop" Margin="0,0,8,0"/>
-                            </DockPanel>
-                        </StackPanel>
+                    <Border Grid.Row="0" Style="{StaticResource CardPanel}" Margin="0,0,0,10" Padding="12,10" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnFolderADrop">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Left" Text="📁  Carpeta" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"
+                                       ToolTip="Carpeta de origen a analizar (podés arrastrar una carpeta aquí)"/>
+                            <CheckBox DockPanel.Dock="Right" Content="Incluir subcarpetas" IsChecked="{Binding IsRecursive}" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="14,0,0,0"/>
+                            <Button DockPanel.Dock="Right" Content="Examinar…" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFolderACommand}"/>
+                            <TextBox Text="{Binding FolderPathA, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnFolderADrop" Margin="0,0,8,0"
+                                     ToolTip="Arrastrá aquí una carpeta"/>
+                        </DockPanel>
                     </Border>
 
                     <!-- Sub-pestañas con las 4 herramientas especializadas -->
-                    <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedToolIndex}" Background="Transparent">
+                    <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedToolIndex}" Style="{StaticResource SideNavTabControl}">
 
                         <!-- ──────── 1. ANALIZADOR DE DISPOSITIVOS & PRENSA ──────── -->
-                        <TabItem Header="📱 Analizador de Dispositivos (Prensa)" FontSize="12">
+                        <TabItem Header="📱  Dispositivos" ToolTip="Analizador de dispositivos (Prensa)">
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -549,7 +547,7 @@
                                             <TextBlock Text="Año:" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox ItemsSource="{Binding YearsList}" SelectedItem="{Binding SelectedYear}" Width="90"/>
                                         </StackPanel>
-                                        <Button Content="▶ Analizar metadatos" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,4"/>
+                                        <Button Content="▶ Analizar" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,4"/>
                                         <Button Content="⏹ Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" Margin="0,0,8,4"/>
                                         <Button Content="⬇ Resumen CSV" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ExportCsvSummaryCommand}" Margin="0,0,6,4"/>
                                         <Button Content="⬇ Detalle CSV" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ExportCsvDetailCommand}" Margin="0,0,6,4"/>
@@ -558,7 +556,7 @@
 
                                 <!-- Barra de progreso y métricas -->
                                 <DockPanel Grid.Row="1" Margin="0,0,0,6">
-                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushAccent}"/>
+                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushAccent}" FontWeight="SemiBold" FontSize="11" Margin="8,0,0,0"/>
                                     <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" TextTrimming="CharacterEllipsis"/>
                                 </DockPanel>
@@ -566,23 +564,23 @@
                                 <!-- Contenido: Resumen Dispositivos y Detalle lado a lado -->
                                 <Grid Grid.Row="2">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="380" MinWidth="240"/>
+                                        <ColumnDefinition Width="395" MinWidth="260"/>
                                         <ColumnDefinition Width="6"/>
                                         <ColumnDefinition Width="*" MinWidth="300"/>
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Panel Izquierdo: Resumen de Modelos -->
-                                    <Border Grid.Column="0" Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Padding="6">
+                                    <Border Grid.Column="0" Style="{StaticResource TablePanel}">
                                         <DockPanel>
                                             <TextBlock DockPanel.Dock="Top" Text="Dispositivos detectados (clic para filtrar)" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" Margin="4,0,0,6"/>
                                             <ListView ItemsSource="{Binding DeviceSummaries}" SelectedItem="{Binding SelectedDeviceSummary}" Background="Transparent" BorderThickness="0">
                                                 <ListView.View>
                                                     <GridView>
-                                                        <GridViewColumn Header="Dispositivo" DisplayMemberBinding="{Binding DeviceModel}" Width="160"/>
-                                                        <GridViewColumn Header="Vert." DisplayMemberBinding="{Binding VerticalCount}" Width="45"/>
-                                                        <GridViewColumn Header="Horiz." DisplayMemberBinding="{Binding HorizontalCount}" Width="45"/>
-                                                        <GridViewColumn Header="Total" DisplayMemberBinding="{Binding TotalCount}" Width="45"/>
-                                                        <GridViewColumn Header="% V" DisplayMemberBinding="{Binding PctVertical}" Width="45"/>
+                                                        <GridViewColumn Header="Dispositivo" DisplayMemberBinding="{Binding DeviceModel}" Width="145"/>
+                                                        <GridViewColumn Header="Vert." DisplayMemberBinding="{Binding VerticalCount}" Width="56"/>
+                                                        <GridViewColumn Header="Horiz." DisplayMemberBinding="{Binding HorizontalCount}" Width="60"/>
+                                                        <GridViewColumn Header="Total" DisplayMemberBinding="{Binding TotalCount}" Width="56"/>
+                                                        <GridViewColumn Header="% V" DisplayMemberBinding="{Binding PctVertical}" Width="54"/>
                                                     </GridView>
                                                 </ListView.View>
                                             </ListView>
@@ -592,22 +590,22 @@
                                     <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
 
                                     <!-- Panel Derecho: Videos filtrados -->
-                                    <Border Grid.Column="2" Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Padding="6">
+                                    <Border Grid.Column="2" Style="{StaticResource TablePanel}">
                                         <DockPanel>
                                             <DockPanel DockPanel.Dock="Top" Margin="4,0,0,6">
                                                 <Button DockPanel.Dock="Right" Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" Padding="8,3" FontSize="11"/>
-                                                <TextBlock Text="Videos (Doble clic en fila para ubicar)" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Videos" ToolTip="Doble clic en una fila para ubicar el archivo" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" VerticalAlignment="Center"/>
                                             </DockPanel>
                                             <ListView ItemsSource="{Binding FilteredVideosForSelectedDevice}" SelectedItem="{Binding SelectedMetadataItem}" Background="Transparent" BorderThickness="0">
                                                 <ListView.ItemContainerStyle>
-                                                    <Style TargetType="ListViewItem">
+                                                    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
                                                         <EventSetter Event="MouseDoubleClick" Handler="OnMetadataItemDoubleClicked"/>
                                                     </Style>
                                                 </ListView.ItemContainerStyle>
                                                 <ListView.View>
                                                     <GridView>
                                                         <GridViewColumn Header="Archivo" DisplayMemberBinding="{Binding FileName}" Width="170"/>
-                                                        <GridViewColumn Header="Orientación" DisplayMemberBinding="{Binding Orientation}" Width="80"/>
+                                                        <GridViewColumn Header="Orientación" DisplayMemberBinding="{Binding Orientation}" Width="105"/>
                                                         <GridViewColumn Header="Resolución" DisplayMemberBinding="{Binding Resolution}" Width="85"/>
                                                         <GridViewColumn Header="Duración" DisplayMemberBinding="{Binding DurationFormatted}" Width="70"/>
                                                         <GridViewColumn Header="Tamaño" DisplayMemberBinding="{Binding SizeFormatted}" Width="75"/>
@@ -622,7 +620,7 @@
                         </TabItem>
 
                         <!-- 2. BUSCADOR HORIZONTAL / VERTICAL -->
-                        <TabItem Header="📐 Buscador Horizontal / Vertical" FontSize="12">
+                        <TabItem Header="📐  Horizontal / Vertical" ToolTip="Buscador de videos horizontales y verticales">
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -631,42 +629,53 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Filtro de palabra y filtro de orientación -->
-                                <Border Grid.Row="0" Style="{StaticResource CardPanel}" Padding="8,6" Margin="0,0,0,6">
-                                    <WrapPanel VerticalAlignment="Center">
-                                        <StackPanel Style="{StaticResource FieldGroup}">
-                                            <TextBlock Text="Palabra a buscar:" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding SearchWord, UpdateSourceTrigger=PropertyChanged}" Width="180"/>
+                                <Border Grid.Row="0" Style="{StaticResource CardPanel}" Padding="10,8" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- Fila 1: criterios de búsqueda + acción principal -->
+                                        <DockPanel Grid.Row="0" LastChildFill="True">
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="10,0,0,0">
+                                                <Button Content="▶  Buscar" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,6,0"/>
+                                                <Button Content="⏹  Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}"/>
+                                            </StackPanel>
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0">
+                                                <TextBlock Text="Orientación" Style="{StaticResource FieldLabel}" Margin="0,0,8,0"/>
+                                                <ComboBox ItemsSource="{Binding OrientationFilterList}" SelectedItem="{Binding SelectedOrientationFilter}" Width="120"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Buscar" Style="{StaticResource FieldLabel}" Margin="0,0,8,0"/>
+                                            <TextBox Text="{Binding SearchWord, UpdateSourceTrigger=PropertyChanged}" MinWidth="140" ToolTip="Filtra por nombre de archivo o carpeta"/>
+                                        </DockPanel>
+                                        <!-- Fila 2: acciones sobre el video seleccionado -->
+                                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                            <TextBlock Text="Seleccionado:" Style="{StaticResource FieldLabel}" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,10,0"/>
+                                            <Button Content="📂  Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" MinHeight="28" FontSize="12" Margin="0,0,6,0"/>
+                                            <Button Content="⚡  Enviar a Convertir" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding SendToConverterCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" MinHeight="28" FontSize="12"/>
                                         </StackPanel>
-                                        <StackPanel Style="{StaticResource FieldGroup}">
-                                            <TextBlock Text="Orientación:" Style="{StaticResource FieldLabel}"/>
-                                            <ComboBox ItemsSource="{Binding OrientationFilterList}" SelectedItem="{Binding SelectedOrientationFilter}" Width="120"/>
-                                        </StackPanel>
-                                        <Button Content="▶ Buscar videos" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,4"/>
-                                        <Button Content="⏹ Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" Margin="0,0,8,4"/>
-                                        <Button Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" Margin="0,0,6,4"/>
-                                        <Button Content="⚡ Enviar a Convertir" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding SendToConverterCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" Margin="0,0,6,4"/>
-                                    </WrapPanel>
+                                    </Grid>
                                 </Border>
 
                                 <!-- Barra de progreso y métricas -->
                                 <DockPanel Grid.Row="1" Margin="0,0,0,6">
-                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushAccent}"/>
+                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushAccent}" FontWeight="SemiBold" FontSize="11" Margin="8,0,0,0"/>
                                     <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" TextTrimming="CharacterEllipsis"/>
                                 </DockPanel>
 
                                 <!-- Listado de resultados con filtro en tiempo real -->
-                                <Border Grid.Row="2" Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Padding="6">
+                                <Border Grid.Row="2" Style="{StaticResource TablePanel}">
                                     <ListView ItemsSource="{Binding FilteredOrientationVideos}" SelectedItem="{Binding SelectedMetadataItem}" Background="Transparent" BorderThickness="0">
                                         <ListView.ItemContainerStyle>
-                                            <Style TargetType="ListViewItem">
+                                            <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
                                                 <EventSetter Event="MouseDoubleClick" Handler="OnMetadataItemDoubleClicked"/>
                                             </Style>
                                         </ListView.ItemContainerStyle>
                                         <ListView.View>
                                             <GridView>
                                                 <GridViewColumn Header="Archivo" DisplayMemberBinding="{Binding FileName}" Width="200"/>
-                                                <GridViewColumn Header="Orientación" Width="95">
+                                                <GridViewColumn Header="Orientación" Width="105">
                                                     <GridViewColumn.CellTemplate>
                                                         <DataTemplate>
                                                             <TextBlock Text="{Binding Orientation}">
@@ -675,11 +684,11 @@
                                                                         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
                                                                         <Style.Triggers>
                                                                             <DataTrigger Binding="{Binding Orientation}" Value="Vertical">
-                                                                                <Setter Property="Foreground" Value="#58A6FF"/>
+                                                                                <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
                                                                                 <Setter Property="FontWeight" Value="SemiBold"/>
                                                                             </DataTrigger>
                                                                             <DataTrigger Binding="{Binding Orientation}" Value="Horizontal">
-                                                                                <Setter Property="Foreground" Value="#3FB950"/>
+                                                                                <Setter Property="Foreground" Value="{StaticResource BrushSuccess}"/>
                                                                             </DataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
@@ -691,7 +700,7 @@
                                                 <GridViewColumn Header="Resolución" DisplayMemberBinding="{Binding Resolution}" Width="90"/>
                                                 <GridViewColumn Header="Duración" DisplayMemberBinding="{Binding DurationFormatted}" Width="75"/>
                                                 <GridViewColumn Header="Tamaño" DisplayMemberBinding="{Binding SizeFormatted}" Width="85"/>
-                                                <GridViewColumn Header="Dispositivo / Origen" DisplayMemberBinding="{Binding DeviceModel}" Width="160"/>
+                                                <GridViewColumn Header="Dispositivo / Origen" DisplayMemberBinding="{Binding DeviceModel}" Width="180"/>
                                                 <GridViewColumn Header="Carpeta" DisplayMemberBinding="{Binding Directory}" Width="320"/>
                                             </GridView>
                                         </ListView.View>
@@ -701,7 +710,7 @@
                         </TabItem>
 
                         <!-- ──────── 2. BUSCADOR DE VIDEOS ROTOS O DAÑADOS ──────── -->
-                        <TabItem Header="⚠️ Videos Rotos o Dañados" FontSize="12">
+                        <TabItem Header="⚠️  Videos dañados" ToolTip="Buscador de videos rotos o dañados">
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -718,16 +727,16 @@
                                 </Border>
 
                                 <DockPanel Grid.Row="1" Margin="0,0,0,6">
-                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushDanger}"/>
+                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushDanger}"/>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushDanger}" FontWeight="SemiBold" FontSize="11" Margin="8,0,0,0"/>
                                     <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" TextTrimming="CharacterEllipsis"/>
                                 </DockPanel>
 
-                                <Border Grid.Row="2" Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Padding="6">
+                                <Border Grid.Row="2" Style="{StaticResource TablePanel}">
                                     <DockPanel>
                                         <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
                                             <Button Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedBrokenItem.FilePath}" Margin="0,0,8,0"/>
-                                            <Button Content="🔧 Enviar a Reparación ProRes" Style="{StaticResource PrimaryButtonStyle}" Background="#D97706" BorderBrush="#F59F00" Command="{Binding SendToRepairCommand}" CommandParameter="{Binding SelectedBrokenItem.FilePath}" ToolTip="Abrir este video en la pestaña de Recuperación ProRes"/>
+                                            <Button Content="🔧 Enviar a Reparación ProRes" Style="{StaticResource PrimaryButtonStyle}" Background="{StaticResource BrushWarning}" BorderBrush="{StaticResource BrushWarning}" Command="{Binding SendToRepairCommand}" CommandParameter="{Binding SelectedBrokenItem.FilePath}" ToolTip="Abrir este video en la pestaña de Recuperación ProRes"/>
                                         </WrapPanel>
                                         <ListView ItemsSource="{Binding BrokenItems}" SelectedItem="{Binding SelectedBrokenItem}" Background="Transparent" BorderThickness="0">
                                             <ListView.View>
@@ -735,7 +744,7 @@
                                                     <GridViewColumn Header="Archivo dañado" DisplayMemberBinding="{Binding FileName}" Width="200"/>
                                                     <GridViewColumn Header="Tamaño" DisplayMemberBinding="{Binding SizeFormatted}" Width="85"/>
                                                     <GridViewColumn Header="Diagnóstico / Razón del fallo" DisplayMemberBinding="{Binding ErrorReason}" Width="320"/>
-                                                    <GridViewColumn Header="¿ProRes?" DisplayMemberBinding="{Binding IsProResCandidate}" Width="75"/>
+                                                    <GridViewColumn Header="¿ProRes?" DisplayMemberBinding="{Binding IsProResCandidate}" Width="88"/>
                                                     <GridViewColumn Header="Carpeta" DisplayMemberBinding="{Binding Directory}" Width="320"/>
                                                 </GridView>
                                             </ListView.View>
@@ -746,7 +755,7 @@
                         </TabItem>
 
                         <!-- ──────── 3. BUSCADOR DE VIDEOS SIN COMPRESIÓN / PESADOS ──────── -->
-                        <TabItem Header="📦 Videos Sin Compresión / Pesados" FontSize="12">
+                        <TabItem Header="📦  Videos pesados" ToolTip="Videos sin compresión o muy pesados (ProRes, DNxHD, RAW)">
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -758,12 +767,12 @@
                                     <WrapPanel VerticalAlignment="Center">
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="Bitrate mín:" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding MinBitrateMbps}" Width="45" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding MinBitrateMbps}" Width="58" TextAlignment="Center"/>
                                             <TextBlock Text="Mb/s" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                         </StackPanel>
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="Tamaño mín:" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding MinSizeGB}" Width="45" TextAlignment="Center"/>
+                                            <TextBox Text="{Binding MinSizeGB}" Width="58" TextAlignment="Center"/>
                                             <TextBlock Text="GB" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                         </StackPanel>
                                         <Button Content="▶ Buscar videos pesados" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,0"/>
@@ -772,12 +781,12 @@
                                 </Border>
 
                                 <DockPanel Grid.Row="1" Margin="0,0,0,6">
-                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushWarning}"/>
+                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushWarning}"/>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushWarning}" FontWeight="SemiBold" FontSize="11" Margin="8,0,0,0"/>
                                     <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" TextTrimming="CharacterEllipsis"/>
                                 </DockPanel>
 
-                                <Border Grid.Row="2" Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Padding="6">
+                                <Border Grid.Row="2" Style="{StaticResource TablePanel}">
                                     <DockPanel>
                                         <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
                                             <Button Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedHeavyItem.FilePath}" Margin="0,0,8,0"/>
@@ -802,7 +811,7 @@
                         </TabItem>
 
                         <!-- ──────── 4. BUSCADOR DE DUPLICADOS ──────── -->
-                        <TabItem Header="👥 Buscador de Duplicados" FontSize="12">
+                        <TabItem Header="👥  Duplicados" ToolTip="Buscador de archivos duplicados">
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -821,18 +830,18 @@
                                         <DockPanel Visibility="{Binding CompareTwoFolders, Converter={StaticResource BoolToVis}}" Margin="0,2,0,2">
                                             <TextBlock Text="Carpeta B:" Style="{StaticResource FieldLabel}" Margin="0,0,6,0"/>
                                             <Button DockPanel.Dock="Right" Content="Examinar..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFolderBCommand}"/>
-                                            <TextBox Text="{Binding FolderPathB, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFolderBDragOver" Drop="OnFolderBDrop" Margin="0,0,8,0"/>
+                                            <TextBox Text="{Binding FolderPathB, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnFolderBDrop" Margin="0,0,8,0"/>
                                         </DockPanel>
                                     </StackPanel>
                                 </Border>
 
                                 <DockPanel Grid.Row="1" Margin="0,0,0,6">
-                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="#21262D" Foreground="{StaticResource BrushAccent}"/>
+                                    <ProgressBar DockPanel.Dock="Top" Height="5" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushAccent}" FontWeight="SemiBold" FontSize="11" Margin="8,0,0,0"/>
                                     <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" TextTrimming="CharacterEllipsis"/>
                                 </DockPanel>
 
-                                <Border Grid.Row="2" Background="#161B22" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1" CornerRadius="6" Padding="6">
+                                <Border Grid.Row="2" Style="{StaticResource TablePanel}">
                                     <DockPanel>
                                         <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
                                             <Button Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedDuplicateItem.FilePath}" Margin="0,0,8,0"/>
@@ -841,15 +850,15 @@
                                         <ListView ItemsSource="{Binding DuplicateItems}" SelectedItem="{Binding SelectedDuplicateItem}" Background="Transparent" BorderThickness="0">
                                             <ListView.View>
                                                 <GridView>
-                                                    <GridViewColumn Header="Grupo" DisplayMemberBinding="{Binding GroupId}" Width="55"/>
-                                                    <GridViewColumn Header="Rol" DisplayMemberBinding="{Binding IsPrimary, Converter={x:Null}}" Width="95">
+                                                    <GridViewColumn Header="Grupo" DisplayMemberBinding="{Binding GroupId}" Width="68"/>
+                                                    <GridViewColumn Header="Rol" Width="115">
                                                         <GridViewColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <TextBlock>
                                                                     <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
                                                                             <Setter Property="Text" Value="Copia duplicada"/>
-                                                                            <Setter Property="Foreground" Value="#FFA198"/>
+                                                                            <Setter Property="Foreground" Value="{StaticResource BrushDanger}"/>
                                                                             <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding IsPrimary}" Value="True">
                                                                                     <Setter Property="Text" Value="Original"/>
@@ -865,7 +874,7 @@
                                                     </GridViewColumn>
                                                     <GridViewColumn Header="Archivo" DisplayMemberBinding="{Binding FileName}" Width="200"/>
                                                     <GridViewColumn Header="Tamaño" DisplayMemberBinding="{Binding SizeFormatted}" Width="85"/>
-                                                    <GridViewColumn Header="Fecha modificado" DisplayMemberBinding="{Binding DateModified, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="120"/>
+                                                    <GridViewColumn Header="Fecha modificado" DisplayMemberBinding="{Binding DateModified, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="140"/>
                                                     <GridViewColumn Header="Carpeta" DisplayMemberBinding="{Binding Directory}" Width="350"/>
                                                 </GridView>
                                             </ListView.View>

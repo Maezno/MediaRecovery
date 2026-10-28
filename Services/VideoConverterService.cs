@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -54,28 +54,14 @@ public class VideoConverterService
         return HardwareGpuChoice.Cpu;
     }
 
-    private async Task<bool> TestEncoderAsync(string encoder, CancellationToken cancellationToken)
+    private static async Task<bool> TestEncoderAsync(string encoder, CancellationToken ct)
     {
         try
         {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "ffmpeg",
-                Arguments = $"-hide_banner -loglevel error -f lavfi -i nullsrc=s=1920x1080 -t 0.1 -c:v {encoder} -f null -",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            using var proc = Process.Start(psi);
-            if (proc == null) return false;
-            await proc.WaitForExitAsync(cancellationToken);
-            return proc.ExitCode == 0;
+            var res = await ProcessRunnerService.CaptureAsync("ffmpeg", $"-hide_banner -loglevel error -f lavfi -i nullsrc=s=1920x1080 -t 0.1 -c:v {encoder} -f null -", ct);
+            return res.ExitCode == 0;
         }
-        catch
-        {
-            return false;
-        }
+        catch { return false; }
     }
 
     public async Task<int> ConvertVideoAsync(
@@ -419,50 +405,16 @@ public class VideoConverterService
 
     private static async Task<string> RunCaptureAsync(string exe, string args, bool captureStdErr, CancellationToken ct)
     {
-        var psi = new ProcessStartInfo
-        {
-            FileName = exe,
-            Arguments = args,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8
-        };
-        using var proc = Process.Start(psi);
-        if (proc == null) return "";
-        var outTask = proc.StandardOutput.ReadToEndAsync(ct);
-        var errTask = proc.StandardError.ReadToEndAsync(ct);
-        await proc.WaitForExitAsync(ct);
-        return captureStdErr ? await errTask : await outTask;
+        var res = await ProcessRunnerService.CaptureAsync(exe, args, ct);
+        return captureStdErr ? res.StdErr : res.StdOut;
     }
 
-    private static async Task<double> ProbeDurationSecondsAsync(string filePath, CancellationToken cancellationToken)
+    private static async Task<double> ProbeDurationSecondsAsync(string filePath, CancellationToken ct)
     {
         try
         {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "ffprobe",
-                Arguments = $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{filePath}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8
-            };
-
-            using var proc = Process.Start(psi);
-            if (proc == null) return 0;
-
-            string output = await proc.StandardOutput.ReadToEndAsync(cancellationToken);
-            await proc.WaitForExitAsync(cancellationToken);
-
-            if (double.TryParse(output.Trim(), System.Globalization.CultureInfo.InvariantCulture, out double dur))
-            {
-                return dur;
-            }
+            var res = await ProcessRunnerService.CaptureAsync("ffprobe", $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{filePath}\"", ct);
+            if (double.TryParse(res.StdOut, System.Globalization.CultureInfo.InvariantCulture, out double dur)) return dur;
         }
         catch { }
         return 0;
