@@ -125,7 +125,6 @@ public class VideoConverterService
                     "-maxrate", bk,
                     "-bufsize", bufk,
                     "-profile:v", "high",
-                    "-level", "4.2",
                     "-preset", "p4",
                     "-tune", "hq",
                     "-rc-lookahead", "32"
@@ -141,7 +140,6 @@ public class VideoConverterService
                     "-maxrate", bk,
                     "-bufsize", bufk,
                     "-profile:v", "high",
-                    "-level", "4.2",
                     "-quality", "speed",
                     "-preanalysis", "false",
                     "-vbaq", "false"
@@ -156,7 +154,6 @@ public class VideoConverterService
                     "-maxrate", bk,
                     "-bufsize", bufk,
                     "-profile:v", "high",
-                    "-level", "4.2",
                     "-preset", "medium"
                 });
             }
@@ -249,7 +246,7 @@ public class VideoConverterService
         var timeRegex = new Regex(@"time=(\d+):(\d+):([\d\.]+)");
         var fpsRegex = new Regex(@"fps=\s*([\d\.]+)");
 
-        return await _runner.RunAsync(
+                int exitCode = await _runner.RunAsync(
             "ffmpeg",
             arguments,
             onOutputLine: line =>
@@ -264,6 +261,15 @@ public class VideoConverterService
             },
             cancellationToken: cancellationToken);
 
+        // Fallback automático por software si la aceleración por hardware (GPU) falla y la tarea no fue cancelada
+        if (exitCode != 0 && !cancellationToken.IsCancellationRequested && chosenGpu != HardwareGpuChoice.Cpu && !job.Codec.Equals("prores", StringComparison.OrdinalIgnoreCase))
+        {
+            onLog?.Invoke($"[GPU] La codificación con aceleración {chosenGpu} falló (código {exitCode}). Reintentando automáticamente con procesamiento por CPU (software)...");
+            var cpuJob = job with { Gpu = HardwareGpuChoice.Cpu };
+            return await ConvertVideoAsync(cpuJob, onLog, onProgress, cancellationToken);
+        }
+
+        return exitCode;
         void LogFiltered(string line)
         {
             if (string.IsNullOrWhiteSpace(line)) return;
@@ -276,7 +282,7 @@ public class VideoConverterService
             // Mantener avisos relevantes, errores o cambios de estado
             if (line.Contains("Error", StringComparison.OrdinalIgnoreCase) || 
                 line.Contains("Warning", StringComparison.OrdinalIgnoreCase) || 
-                line.Contains("failed", StringComparison.OrdinalIgnoreCase) ||
+                line.Contains("fail", StringComparison.OrdinalIgnoreCase) || line.Contains("invalid", StringComparison.OrdinalIgnoreCase) || line.Contains("cannot", StringComparison.OrdinalIgnoreCase) || line.Contains("could not", StringComparison.OrdinalIgnoreCase) ||
                 line.Contains("Stream #") ||
                 line.Contains("Input #") ||
                 line.Contains("Output #"))
