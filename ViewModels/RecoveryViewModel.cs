@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using MediaRecovery.Models;
@@ -39,20 +39,34 @@ public class RecoveryViewModel : ViewModelBase
         StartScanCommand = new RelayCommand(async _ => await StartScanAsync(), _ => !IsScanning && !IsBuildingMov && File.Exists(SourceFilePath));
         CancelScanCommand = new RelayCommand(_ => CancelScan(), _ => IsScanning || IsBuildingMov);
         BuildMovCommand = new RelayCommand(async _ => await BuildMovAsync(), _ => !IsScanning && !IsBuildingMov && _allScannedFrames.Count > 0 && !string.IsNullOrWhiteSpace(OutputMovPath));
+        CopyLogCommand = new RelayCommand(_ => CopyTextToClipboard(LogOutput), _ => !string.IsNullOrWhiteSpace(LogOutput));
     }
 
-    public string SourceFilePath { get => _sourceFilePath; set { SetField(ref _sourceFilePath, value); CommandManager.InvalidateRequerySuggested(); } }
-    public string OutputMovPath { get => _outputMovPath; set { SetField(ref _outputMovPath, value); CommandManager.InvalidateRequerySuggested(); } }
+    public ICommand CopyLogCommand { get; }
+
+    public string SourceFilePath
+    {
+        get => _sourceFilePath;
+        set
+        {
+            string sanitized = SanitizePath(value);
+            if (SetField(ref _sourceFilePath, sanitized))
+            {
+                if (!string.IsNullOrWhiteSpace(sanitized) && File.Exists(sanitized))
+                {
+                    string dir = Path.GetDirectoryName(sanitized) ?? string.Empty;
+                    string name = Path.GetFileNameWithoutExtension(sanitized);
+                    OutputMovPath = Path.Combine(dir, $"{name}_recovered.mov");
+                }
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+    }
+    public string OutputMovPath { get => _outputMovPath; set { SetField(ref _outputMovPath, SanitizePath(value)); CommandManager.InvalidateRequerySuggested(); } }
 
     public void SetSourceFile(string filePath)
     {
         SourceFilePath = filePath;
-        if (!string.IsNullOrWhiteSpace(filePath))
-        {
-            string dir = Path.GetDirectoryName(filePath) ?? string.Empty;
-            string name = Path.GetFileNameWithoutExtension(filePath);
-            OutputMovPath = Path.Combine(dir, $"{name}_recovered.mov");
-        }
     }
     public bool IncludeAudio { get => _includeAudio; set => SetField(ref _includeAudio, value); }
     public bool IsBuildingMov { get => _isBuildingMov; set { SetField(ref _isBuildingMov, value); CommandManager.InvalidateRequerySuggested(); } }

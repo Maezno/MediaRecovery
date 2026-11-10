@@ -84,12 +84,12 @@ public class MainViewModel : ViewModelBase
             onSendToRepair: filePath =>
             {
                 Recovery.SetSourceFile(filePath);
-                SelectedTabIndex = 1; // Pestaña 1: Recuperación ProRes
+                SelectedTabIndex = 1; // Pestaña 2 (índice 1): Recuperación ProRes
             },
             onSendToConverter: filePath =>
             {
                 Converter.SourceFile = filePath;
-                SelectedTabIndex = 2; // Pestaña 2: Convertir Videos & Lotes
+                SelectedTabIndex = 0; // Pestaña 1 (índice 0): Convertir Videos & Lotes
             }
         );
 

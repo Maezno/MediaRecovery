@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -97,8 +97,8 @@ public class LibraryToolsViewModel : ViewModelBase
     }
 
     // Propiedades de configuración
-    public string FolderPathA { get => _folderPathA; set { SetField(ref _folderPathA, value); CommandManager.InvalidateRequerySuggested(); } }
-    public string FolderPathB { get => _folderPathB; set => SetField(ref _folderPathB, value); }
+    public string FolderPathA { get => _folderPathA; set { SetField(ref _folderPathA, SanitizeFolderPath(value)); CommandManager.InvalidateRequerySuggested(); } }
+    public string FolderPathB { get => _folderPathB; set => SetField(ref _folderPathB, SanitizeFolderPath(value)); }
     public bool IsRecursive { get => _isRecursive; set => SetField(ref _isRecursive, value); }
     public bool CompareTwoFolders { get => _compareTwoFolders; set => SetField(ref _compareTwoFolders, value); }
 

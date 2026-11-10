@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -86,7 +86,10 @@ public class ConverterViewModel : ViewModelBase
         NavigateToRepairCommand = new RelayCommand(_ => NavigateToRepair(), _ => !string.IsNullOrWhiteSpace(SourceFile));
         CheckIntegrityCommand = new RelayCommand(async _ => await CheckIntegrityAsync(SourceFile), _ => !string.IsNullOrWhiteSpace(SourceFile));
         OpenOutputCommand = new RelayCommand(_ => OpenOutput(), _ => HasLastOutput);
+        CopyLogCommand = new RelayCommand(_ => CopyTextToClipboard(LogOutput), _ => !string.IsNullOrWhiteSpace(LogOutput));
     }
+
+    public ICommand CopyLogCommand { get; }
 
     private string _lastOutputPath = string.Empty;
     public string LastOutputPath
@@ -104,17 +107,19 @@ public class ConverterViewModel : ViewModelBase
         get => _sourceFile;
         set
         {
-            if (SetField(ref _sourceFile, value))
+            string sanitized = SanitizePath(value);
+            if (SetField(ref _sourceFile, sanitized))
             {
-                if (!string.IsNullOrWhiteSpace(value) && string.IsNullOrWhiteSpace(OutputFile))
+                if (!string.IsNullOrWhiteSpace(sanitized) && File.Exists(sanitized))
                 {
-                    string dir = Path.GetDirectoryName(value) ?? "";
-                    string baseName = Path.GetFileNameWithoutExtension(value);
-                    OutputFile = Path.Combine(dir, $"{baseName}_converted.mp4");
+                    string dir = Path.GetDirectoryName(sanitized) ?? "";
+                    string baseName = Path.GetFileNameWithoutExtension(sanitized);
+                    string targetExt = SelectedCodec.Contains("ProRes", StringComparison.OrdinalIgnoreCase) ? ".mov" : ".mp4";
+                    OutputFile = Path.Combine(dir, $"{baseName}_converted{targetExt}");
                 }
 
-                _ = CheckIntegrityAsync(value);
-                _ = AutoDetectScanTypeAsync(value);
+                _ = CheckIntegrityAsync(sanitized);
+                _ = AutoDetectScanTypeAsync(sanitized);
             }
         }
     }
@@ -160,7 +165,7 @@ public class ConverterViewModel : ViewModelBase
         AppendLog($"[Detección] {ScanTypeInfo}");
     }
 
-    public string OutputFile { get => _outputFile; set => SetField(ref _outputFile, value); }
+    public string OutputFile { get => _outputFile; set => SetField(ref _outputFile, SanitizePath(value)); }
     public string SelectedCodec
     {
         get => _selectedCodec;
@@ -207,12 +212,43 @@ public class ConverterViewModel : ViewModelBase
 
     public ObservableCollection<BatchVideoItem> BatchItems { get => _batchItems; set => SetField(ref _batchItems, value); }
     public BatchVideoItem? SelectedBatchItem { get => _selectedBatchItem; set => SetField(ref _selectedBatchItem, value); }
-    public string BatchOutputFolder { get => _batchOutputFolder; set => SetField(ref _batchOutputFolder, value); }
+    public string BatchOutputFolder { get => _batchOutputFolder; set => SetField(ref _batchOutputFolder, SanitizeFolderPath(value)); }
+
+    private static List<string> ExpandPathsToVideoFiles(IEnumerable<string> paths)
+    {
+        var result = new List<string>();
+        var videoExts = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { ".mov", ".mp4", ".mkv", ".avi", ".mxf", ".m4v", ".ts", ".mts", ".m2ts", ".webm", ".wmv", ".mpg", ".mpeg" };
+
+        foreach (var raw in paths)
+        {
+            string p = SanitizePath(raw);
+            if (string.IsNullOrWhiteSpace(p)) continue;
+
+            if (File.Exists(p))
+            {
+                result.Add(p);
+            }
+            else if (Directory.Exists(p))
+            {
+                try
+                {
+                    foreach (var f in Directory.EnumerateFiles(p, "*.*", SearchOption.TopDirectoryOnly))
+                    {
+                        if (videoExts.Contains(Path.GetExtension(f)))
+                            result.Add(f);
+                    }
+                }
+                catch { }
+            }
+        }
+        return result;
+    }
 
     public void HandleSingleFileDrop(string[] files)
     {
         if (files == null || files.Length == 0) return;
-        var validFiles = files.Where(f => !Directory.Exists(f) && File.Exists(f)).ToArray();
+        var validFiles = ExpandPathsToVideoFiles(files).ToArray();
         if (validFiles.Length == 0) return;
 
         if (validFiles.Length == 1)
@@ -232,7 +268,7 @@ public class ConverterViewModel : ViewModelBase
     public void HandleBatchFilesDrop(string[] files)
     {
         if (files == null || files.Length == 0) return;
-        var validFiles = files.Where(f => !Directory.Exists(f) && File.Exists(f)).ToArray();
+        var validFiles = ExpandPathsToVideoFiles(files).ToArray();
         if (validFiles.Length > 0)
         {
             AddFilesToBatch(validFiles);

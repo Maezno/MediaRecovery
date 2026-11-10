@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -39,10 +39,13 @@ public class DownloaderViewModel : ViewModelBase
         BrowseFolderCommand = new RelayCommand(_ => BrowseFolder());
         StartDownloadCommand = new RelayCommand(async _ => await StartDownloadAsync(), _ => !IsBusy && !string.IsNullOrWhiteSpace(Url));
         CancelCommand = new RelayCommand(_ => Cancel(), _ => IsBusy);
+        CopyLogCommand = new RelayCommand(_ => CopyTextToClipboard(LogOutput), _ => !string.IsNullOrWhiteSpace(LogOutput));
     }
 
-    public string Url { get => _url; set { SetField(ref _url, value); CommandManager.InvalidateRequerySuggested(); } }
-    public string OutputFolder { get => _outputFolder; set => SetField(ref _outputFolder, value); }
+    public ICommand CopyLogCommand { get; }
+
+    public string Url { get => _url; set { SetField(ref _url, SanitizePath(value)); CommandManager.InvalidateRequerySuggested(); } }
+    public string OutputFolder { get => _outputFolder; set => SetField(ref _outputFolder, SanitizeFolderPath(value)); }
     public bool IsVideo { get => _isVideo; set { SetField(ref _isVideo, value); if (value) IsAudio = false; } }
     public bool IsAudio { get => _isAudio; set { SetField(ref _isAudio, value); if (value) IsVideo = false; } }
     public string Mp3Quality { get => _mp3Quality; set => SetField(ref _mp3Quality, value); }
@@ -69,6 +72,15 @@ public class DownloaderViewModel : ViewModelBase
 
     private void PasteFromClipboard()
     {
+        if (Clipboard.ContainsFileDropList())
+        {
+            var files = Clipboard.GetFileDropList();
+            if (files.Count > 0 && files[0] is { } firstPath)
+            {
+                OutputFolder = firstPath;
+                return;
+            }
+        }
         if (Clipboard.ContainsText())
         {
             Url = Clipboard.GetText().Trim();

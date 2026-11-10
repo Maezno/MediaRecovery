@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 
 namespace MediaRecovery.ViewModels;
@@ -30,6 +31,32 @@ public abstract class ViewModelBase : INotifyPropertyChanged
             ? logField[^30_000..] + entry
             : logField + entry;
         OnPropertyChanged(propertyName);
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    protected static void CopyTextToClipboard(string? text)
+    {
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            Clipboard.SetText(text);
+        }
+    }
+
+    public static string SanitizePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+        return path.Trim().Trim('"', '\'', '\u201C', '\u201D', '\r', '\n').Trim();
+    }
+
+    public static string SanitizeFolderPath(string? path)
+    {
+        string clean = SanitizePath(path);
+        if (string.IsNullOrEmpty(clean)) return string.Empty;
+        if (File.Exists(clean) && !Directory.Exists(clean))
+        {
+            return Path.GetDirectoryName(clean) ?? clean;
+        }
+        return clean;
     }
 
     protected static void OpenPathInExplorer(string? path)

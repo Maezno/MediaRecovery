@@ -1,4 +1,4 @@
-﻿<Window x:Class="MediaRecovery.Views.MainWindow"
+<Window x:Class="MediaRecovery.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,6 +12,11 @@
         MinHeight="540" MinWidth="720"
         MaxHeight="{x:Static SystemParameters.MaximizedPrimaryScreenHeight}"
         WindowStartupLocation="CenterScreen"
+        AllowDrop="True"
+        PreviewDragEnter="OnWindowPreviewDragEnter"
+        PreviewDragOver="OnWindowPreviewDragOver"
+        PreviewDragLeave="OnWindowPreviewDragLeave"
+        PreviewDrop="OnWindowPreviewDrop"
         Background="{StaticResource BrushBgPrimary}">
 
     <Window.DataContext>
@@ -40,6 +45,29 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style x:Key="LogTextBox" TargetType="TextBox">
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="FontFamily" Value="Consolas, Cascadia Code, monospace"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushLogText}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="CaretBrush" Value="{StaticResource BrushAccent}"/>
+            <Setter Property="SelectionBrush" Value="{StaticResource BrushAccent}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Background="Transparent"
+                                      HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="Splitter" TargetType="GridSplitter">
             <Setter Property="Height" Value="6"/>
@@ -118,191 +146,7 @@
 
         <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}">
 
-            <!-- ═══════════ TAB 1: DESCARGAR DE YOUTUBE / WEB ═══════════ -->
-            <TabItem Header="Descargar de YouTube / Web" DataContext="{Binding Downloader}">
-                <Grid Margin="0,8,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" MinHeight="120"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="145" MinHeight="85"/>
-                    </Grid.RowDefinitions>
-
-                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Margin="0,0,4,0">
-                            <Border Style="{StaticResource CardPanel}">
-                                <StackPanel>
-                                    <TextBlock Text="Enlace del video (YouTube o URL compatible)" Style="{StaticResource SectionTitle}"/>
-                                    <DockPanel>
-                                        <Button DockPanel.Dock="Right" Content="Pegar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding PasteUrlCommand}" MinWidth="70"/>
-                                        <TextBox Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
-                                    </DockPanel>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource CardPanel}">
-                                <StackPanel>
-                                    <TextBlock Text="Carpeta de destino" Style="{StaticResource SectionTitle}"/>
-                                    <DockPanel>
-                                        <Button DockPanel.Dock="Right" Content="Examinar..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFolderCommand}"/>
-                                        <TextBox Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
-                                    </DockPanel>
-                                    <CheckBox Content="Abrir carpeta al finalizar" IsChecked="{Binding OpenFolderOnComplete}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,8,0,0"/>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource CardPanel}">
-                                <StackPanel>
-                                    <TextBlock Text="Formato y rango" Style="{StaticResource SectionTitle}"/>
-                                    <WrapPanel>
-                                        <RadioButton Content="Video (MP4)" IsChecked="{Binding IsVideo}" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,18,6" VerticalAlignment="Center"/>
-                                        <RadioButton Content="Audio (MP3)" IsChecked="{Binding IsAudio}" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,18,6" VerticalAlignment="Center"/>
-                                        <StackPanel Style="{StaticResource FieldGroup}" IsEnabled="{Binding IsAudio}">
-                                            <TextBlock Text="Bitrate MP3:" Style="{StaticResource FieldLabel}"/>
-                                            <ComboBox SelectedValue="{Binding Mp3Quality}" SelectedValuePath="Content" Width="90">
-                                                <ComboBoxItem Content="128k"/>
-                                                <ComboBoxItem Content="192k"/>
-                                                <ComboBoxItem Content="256k"/>
-                                                <ComboBoxItem Content="320k" IsSelected="True"/>
-                                            </ComboBox>
-                                        </StackPanel>
-                                    </WrapPanel>
-
-                                    <WrapPanel Margin="0,6,0,0">
-                                        <RadioButton Content="Video completo" IsChecked="{Binding DownloadFull}" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,18,6"/>
-                                        <RadioButton Content="Solo un fragmento" IsChecked="{Binding DownloadCut}" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,18,6"/>
-                                    </WrapPanel>
-                                    <WrapPanel IsEnabled="{Binding DownloadCut}">
-                                        <StackPanel Style="{StaticResource FieldGroup}">
-                                            <TextBlock Text="Desde:" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding StartH}" Width="42" TextAlignment="Center"/>
-                                            <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                            <TextBox Text="{Binding StartM}" Width="42" TextAlignment="Center"/>
-                                            <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                            <TextBox Text="{Binding StartS}" Width="42" TextAlignment="Center"/>
-                                        </StackPanel>
-                                        <StackPanel Style="{StaticResource FieldGroup}">
-                                            <TextBlock Text="Hasta:" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding EndH}" Width="42" TextAlignment="Center"/>
-                                            <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                            <TextBox Text="{Binding EndM}" Width="42" TextAlignment="Center"/>
-                                            <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
-                                            <TextBox Text="{Binding EndS}" Width="42" TextAlignment="Center"/>
-                                        </StackPanel>
-                                    </WrapPanel>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <GridSplitter Grid.Row="1" Style="{StaticResource Splitter}"/>
-
-                    <!-- Panel inferior fijo: acciones + progreso + log -->
-                    <DockPanel Grid.Row="2">
-                        <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                            <Button Content="Iniciar Descarga" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartDownloadCommand}" MinWidth="140" Margin="0,0,8,4"/>
-                            <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" MinWidth="90" Margin="0,0,8,4"/>
-                        </WrapPanel>
-                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
-                        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
-                        <Border Style="{StaticResource LogBox}">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto" helpers:ScrollViewerExtensions.AutoScrollToEnd="True">
-                                <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{StaticResource BrushLogText}" LineHeight="18" TextWrapping="Wrap"/>
-                            </ScrollViewer>
-                        </Border>
-                    </DockPanel>
-                </Grid>
-            </TabItem>
-
-            <!-- ═══════════ TAB 2: RECUPERACIÓN PRORES ═══════════ -->
-            <TabItem Header="Recuperación ProRes" DataContext="{Binding Recovery}">
-                <Grid Margin="0,8,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" MinHeight="120"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="200" MinHeight="90"/>
-                    </Grid.RowDefinitions>
-
-                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Margin="0,0,4,0">
-                            <Border Style="{StaticResource CardPanel}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnRecoveryFileDrop">
-                                <StackPanel>
-                                    <TextBlock Text="1. Archivo dañado / imagen raw (.mov, .raw, .img, .bin - Arrastrá aquí)" Style="{StaticResource SectionTitle}"/>
-                                    <DockPanel>
-                                        <Button DockPanel.Dock="Right" Content="Examinar..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFileCommand}"/>
-                                        <TextBox Text="{Binding SourceFilePath, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnRecoveryFileDrop" Margin="0,0,8,0"/>
-                                    </DockPanel>
-                                    <WrapPanel Margin="0,8,0,0">
-                                        <StackPanel Style="{StaticResource FieldGroup}">
-                                            <TextBlock Text="Buffer (MB):" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding BufferSizeMB}" Width="58" TextAlignment="Center"/>
-                                        </StackPanel>
-                                        <StackPanel Style="{StaticResource FieldGroup}">
-                                            <TextBlock Text="Frame mín (bytes):" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding FrameMin}" Width="80" TextAlignment="Center"/>
-                                        </StackPanel>
-                                        <StackPanel Style="{StaticResource FieldGroup}">
-                                            <TextBlock Text="Frame máx (bytes):" Style="{StaticResource FieldLabel}"/>
-                                            <TextBox Text="{Binding FrameMax}" Width="90" TextAlignment="Center"/>
-                                        </StackPanel>
-                                    </WrapPanel>
-                                    <WrapPanel Margin="0,4,0,0">
-                                        <Button Content="Iniciar Escaneo" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" MinWidth="140" Margin="0,0,8,4"/>
-                                        <Button Content="Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" MinWidth="90" Margin="0,0,8,4"/>
-                                    </WrapPanel>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Style="{StaticResource CardPanel}">
-                                <StackPanel>
-                                    <TextBlock Text="2. Reconstrucción QuickTime (.mov)" Style="{StaticResource SectionTitle}"/>
-                                    <DockPanel>
-                                        <Button DockPanel.Dock="Right" Content="Guardar como..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseOutputCommand}"/>
-                                        <TextBox Text="{Binding OutputMovPath, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
-                                    </DockPanel>
-                                    <CheckBox Content="Incluir pista de audio LPCM (si está presente)" IsChecked="{Binding IncludeAudio}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,8,0,8"/>
-                                    <Button Content="Reconstruir Contenedor MOV" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding BuildMovCommand}" HorizontalAlignment="Left" MinWidth="200"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-
-                    <GridSplitter Grid.Row="1" Style="{StaticResource Splitter}"/>
-
-                    <DockPanel Grid.Row="2">
-                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushSuccess}"/>
-                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushAccent}" FontWeight="SemiBold" Margin="8,0,0,0"/>
-                            <TextBlock Text="{Binding ScanStatus}" Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"/>
-                        </DockPanel>
-                        <!-- Frames y log lado a lado -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" MinWidth="160"/>
-                                <ColumnDefinition Width="6"/>
-                                <ColumnDefinition Width="1.4*" MinWidth="160"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Style="{StaticResource TablePanel}">
-                                <ListView ItemsSource="{Binding DiscoveredFrames}" Background="Transparent" BorderThickness="0">
-                                    <ListView.View>
-                                        <GridView>
-                                            <GridViewColumn Header="Offset" DisplayMemberBinding="{Binding Offset}" Width="120"/>
-                                            <GridViewColumn Header="Longitud" DisplayMemberBinding="{Binding Length}" Width="100"/>
-                                        </GridView>
-                                    </ListView.View>
-                                </ListView>
-                            </Border>
-                            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
-                            <Border Grid.Column="2" Style="{StaticResource LogBox}">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" helpers:ScrollViewerExtensions.AutoScrollToEnd="True">
-                                    <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{StaticResource BrushLogText}" LineHeight="18" TextWrapping="Wrap"/>
-                                </ScrollViewer>
-                            </Border>
-                        </Grid>
-                    </DockPanel>
-                </Grid>
-            </TabItem>
-
-            <!-- ═══════════ TAB 3: CONVERTIR VIDEOS & LOTES ═══════════ -->
+            <!-- ═══════════ TAB 1: CONVERTIR VIDEOS & LOTES ═══════════ -->
             <TabItem Header="Convertir Videos &amp; Lotes" DataContext="{Binding Converter}">
                 <Grid Margin="0,8,0,0">
                     <Grid.RowDefinitions>
@@ -483,6 +327,7 @@
                             <Button Content="Convertir archivo" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartSingleConvertCommand}" MinWidth="140" Margin="0,0,8,4"/>
                             <Button Content="Iniciar lote" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartBatchConvertCommand}" MinWidth="120" Margin="0,0,8,4"/>
                             <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" MinWidth="90" Margin="0,0,8,4"/>
+                            <Button Content="📋 Copiar log" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles"/>
                             <Button Content="📂 Ir al archivo convertido" 
                                     Style="{StaticResource PrimaryButtonStyle}" 
                                     Background="{StaticResource BrushSuccessStrong}" 
@@ -497,7 +342,193 @@
                         <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
                         <Border Style="{StaticResource LogBox}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto" helpers:ScrollViewerExtensions.AutoScrollToEnd="True">
-                                <TextBlock Text="{Binding LogOutput}" FontFamily="Consolas, Cascadia Code, monospace" FontSize="11.5" Foreground="{StaticResource BrushLogText}" LineHeight="18" TextWrapping="Wrap"/>
+                                <TextBox Text="{Binding LogOutput, Mode=OneWay}" Style="{StaticResource LogTextBox}"/>
+                            </ScrollViewer>
+                        </Border>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ═══════════ TAB 2: RECUPERACIÓN PRORES ═══════════ -->
+            <TabItem Header="Recuperación ProRes" DataContext="{Binding Recovery}">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" MinHeight="120"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="200" MinHeight="90"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,4,0">
+                            <Border Style="{StaticResource CardPanel}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnRecoveryFileDrop">
+                                <StackPanel>
+                                    <TextBlock Text="1. Archivo dañado / imagen raw (.mov, .raw, .img, .bin - Arrastrá aquí)" Style="{StaticResource SectionTitle}"/>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="Examinar..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFileCommand}"/>
+                                        <TextBox Text="{Binding SourceFilePath, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnRecoveryFileDrop" Margin="0,0,8,0"/>
+                                    </DockPanel>
+                                    <WrapPanel Margin="0,8,0,0">
+                                        <StackPanel Style="{StaticResource FieldGroup}">
+                                            <TextBlock Text="Buffer (MB):" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox Text="{Binding BufferSizeMB}" Width="58" TextAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel Style="{StaticResource FieldGroup}">
+                                            <TextBlock Text="Frame mín (bytes):" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox Text="{Binding FrameMin}" Width="80" TextAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel Style="{StaticResource FieldGroup}">
+                                            <TextBlock Text="Frame máx (bytes):" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox Text="{Binding FrameMax}" Width="90" TextAlignment="Center"/>
+                                        </StackPanel>
+                                    </WrapPanel>
+                                    <WrapPanel Margin="0,4,0,0">
+                                        <Button Content="Iniciar Escaneo" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" MinWidth="140" Margin="0,0,8,4"/>
+                                        <Button Content="Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" MinWidth="90" Margin="0,0,8,4"/>
+                                        <Button Content="📋 Copiar log" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardPanel}">
+                                <StackPanel>
+                                    <TextBlock Text="2. Reconstrucción QuickTime (.mov)" Style="{StaticResource SectionTitle}"/>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="Guardar como..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseOutputCommand}"/>
+                                        <TextBox Text="{Binding OutputMovPath, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                                    </DockPanel>
+                                    <CheckBox Content="Incluir pista de audio LPCM (si está presente)" IsChecked="{Binding IncludeAudio}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,8,0,8"/>
+                                    <Button Content="Reconstruir Contenedor MOV" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding BuildMovCommand}" HorizontalAlignment="Left" MinWidth="200"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <GridSplitter Grid.Row="1" Style="{StaticResource Splitter}"/>
+
+                    <DockPanel Grid.Row="2">
+                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding ScanProgress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushSuccess}"/>
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding MetricsText}" Foreground="{StaticResource BrushAccent}" FontWeight="SemiBold" Margin="8,0,0,0"/>
+                            <TextBlock Text="{Binding ScanStatus}" Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"/>
+                        </DockPanel>
+                        <!-- Frames y log lado a lado -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MinWidth="160"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="1.4*" MinWidth="160"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Style="{StaticResource TablePanel}">
+                                <ListView ItemsSource="{Binding DiscoveredFrames}" Background="Transparent" BorderThickness="0">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Header="Offset" DisplayMemberBinding="{Binding Offset}" Width="120"/>
+                                            <GridViewColumn Header="Longitud" DisplayMemberBinding="{Binding Length}" Width="100"/>
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </Border>
+                            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent" Cursor="SizeWE"/>
+                            <Border Grid.Column="2" Style="{StaticResource LogBox}">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" helpers:ScrollViewerExtensions.AutoScrollToEnd="True">
+                                    <TextBox Text="{Binding LogOutput, Mode=OneWay}" Style="{StaticResource LogTextBox}"/>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ═══════════ TAB 3: DESCARGAR DE YOUTUBE / WEB ═══════════ -->
+            <TabItem Header="Descargar de YouTube / Web" DataContext="{Binding Downloader}">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" MinHeight="120"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="145" MinHeight="85"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,4,0">
+                            <Border Style="{StaticResource CardPanel}">
+                                <StackPanel>
+                                    <TextBlock Text="Enlace del video (YouTube o URL compatible)" Style="{StaticResource SectionTitle}"/>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="Pegar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding PasteUrlCommand}" MinWidth="70"/>
+                                        <TextBox Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardPanel}">
+                                <StackPanel>
+                                    <TextBlock Text="Carpeta de destino" Style="{StaticResource SectionTitle}"/>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="Examinar..." Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFolderCommand}"/>
+                                        <TextBox Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+                                    </DockPanel>
+                                    <CheckBox Content="Abrir carpeta al finalizar" IsChecked="{Binding OpenFolderOnComplete}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardPanel}">
+                                <StackPanel>
+                                    <TextBlock Text="Formato y rango" Style="{StaticResource SectionTitle}"/>
+                                    <WrapPanel>
+                                        <RadioButton Content="Video (MP4)" IsChecked="{Binding IsVideo}" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,18,6" VerticalAlignment="Center"/>
+                                        <RadioButton Content="Audio (MP3)" IsChecked="{Binding IsAudio}" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,18,6" VerticalAlignment="Center"/>
+                                        <StackPanel Style="{StaticResource FieldGroup}" IsEnabled="{Binding IsAudio}">
+                                            <TextBlock Text="Bitrate MP3:" Style="{StaticResource FieldLabel}"/>
+                                            <ComboBox SelectedValue="{Binding Mp3Quality}" SelectedValuePath="Content" Width="90">
+                                                <ComboBoxItem Content="128k"/>
+                                                <ComboBoxItem Content="192k"/>
+                                                <ComboBoxItem Content="256k"/>
+                                                <ComboBoxItem Content="320k" IsSelected="True"/>
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </WrapPanel>
+
+                                    <WrapPanel Margin="0,6,0,0">
+                                        <RadioButton Content="Video completo" IsChecked="{Binding DownloadFull}" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,18,6"/>
+                                        <RadioButton Content="Solo un fragmento" IsChecked="{Binding DownloadCut}" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,18,6"/>
+                                    </WrapPanel>
+                                    <WrapPanel IsEnabled="{Binding DownloadCut}">
+                                        <StackPanel Style="{StaticResource FieldGroup}">
+                                            <TextBlock Text="Desde:" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox Text="{Binding StartH}" Width="42" TextAlignment="Center"/>
+                                            <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
+                                            <TextBox Text="{Binding StartM}" Width="42" TextAlignment="Center"/>
+                                            <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
+                                            <TextBox Text="{Binding StartS}" Width="42" TextAlignment="Center"/>
+                                        </StackPanel>
+                                        <StackPanel Style="{StaticResource FieldGroup}">
+                                            <TextBlock Text="Hasta:" Style="{StaticResource FieldLabel}"/>
+                                            <TextBox Text="{Binding EndH}" Width="42" TextAlignment="Center"/>
+                                            <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
+                                            <TextBox Text="{Binding EndM}" Width="42" TextAlignment="Center"/>
+                                            <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0"/>
+                                            <TextBox Text="{Binding EndS}" Width="42" TextAlignment="Center"/>
+                                        </StackPanel>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <GridSplitter Grid.Row="1" Style="{StaticResource Splitter}"/>
+
+                    <!-- Panel inferior fijo: acciones + progreso + log -->
+                    <DockPanel Grid.Row="2">
+                        <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                            <Button Content="Iniciar Descarga" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartDownloadCommand}" MinWidth="140" Margin="0,0,8,4"/>
+                            <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" MinWidth="90" Margin="0,0,8,4"/>
+                            <Button Content="📋 Copiar log" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles"/>
+                        </WrapPanel>
+                        <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
+                        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
+                        <Border Style="{StaticResource LogBox}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" helpers:ScrollViewerExtensions.AutoScrollToEnd="True">
+                                <TextBox Text="{Binding LogOutput, Mode=OneWay}" Style="{StaticResource LogTextBox}"/>
                             </ScrollViewer>
                         </Border>
                     </DockPanel>
@@ -888,5 +919,33 @@
                 </Grid>
             </TabItem>
         </TabControl>
+
+        <!-- Receptor global al arrastrar archivos sobre cualquier lugar de la interfaz -->
+        <Border x:Name="GlobalDropOverlay"
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                Visibility="Collapsed"
+                IsHitTestVisible="False"
+                Background="#D8161920"
+                BorderBrush="{StaticResource BrushAccent}"
+                BorderThickness="2"
+                CornerRadius="10"
+                Panel.ZIndex="999">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="📥" FontSize="42" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                <TextBlock x:Name="GlobalDropTitle"
+                           Text="Soltá el archivo o carpeta en cualquier parte"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource BrushTextPrimary}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock x:Name="GlobalDropSubtitle"
+                           Text="Se cargará automáticamente en la herramienta activa"
+                           FontSize="13"
+                           Foreground="{StaticResource BrushAccentHover}"
+                           HorizontalAlignment="Center"
+                           Margin="0,6,0,0"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>
