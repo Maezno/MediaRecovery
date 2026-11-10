@@ -188,7 +188,7 @@ public class MainViewModel : ViewModelBase
                 IsUpdateDownloaded = true;
                 IsUpdating = false;
                 UpdateNoticeText = $"¡Actualización v{_lastUpdateResult.LatestVersion} lista! Haz clic para reiniciar y actualizar.";
-                UpdateButtonText = "🔄 Reiniciar y actualizar";
+                UpdateButtonText = "Reiniciar y actualizar";
             }
             else
             {

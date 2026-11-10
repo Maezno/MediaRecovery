@@ -42,7 +42,7 @@ public class ConverterViewModel : ViewModelBase
     private string _selectedCodec = "H.264";
     private int _bitrateMbps = 25; // 25 Mbps de V5
     private string _selectedGpu = "Auto";
-    private string _selectedDeinterlace = "🧠 Inteligente (detectar por archivo)";
+    private string _selectedDeinterlace = "Inteligente (detectar por archivo)";
     private bool _includeAudio = true;
     private string _selectedResolution = "Original";
 
@@ -131,7 +131,7 @@ public class ConverterViewModel : ViewModelBase
 
     private const string Deint50pLabel = "Desentrelazar -> 50p (Recomendado ProRes / Doble de cuadros)";
     private const string ProgressiveLabel = "Progresivo (No tocar el video)";
-    private const string SmartLabel = "🧠 Inteligente (detectar por archivo)";
+    private const string SmartLabel = "Inteligente (detectar por archivo)";
 
     private async Task AutoDetectScanTypeAsync(string path)
     {
@@ -139,13 +139,13 @@ public class ConverterViewModel : ViewModelBase
         ScanTypeInfo = string.Empty;
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return;
 
-        ScanTypeInfo = "🔍 Analizando barrido del video...";
+        ScanTypeInfo = "Analizando barrido del video...";
         var info = await VideoConverterService.DetectScanTypeAsync(path);
         if (path != SourceFile) return; // el usuario cambió de archivo mientras analizábamos
 
         if (info == null || info.Method == "indeterminado")
         {
-            ScanTypeInfo = "⚪ No se pudo determinar el barrido. Ajuste el desentrelazado manualmente.";
+            ScanTypeInfo = "No se pudo determinar el barrido. Ajuste el desentrelazado manualmente.";
             return;
         }
 
@@ -155,12 +155,12 @@ public class ConverterViewModel : ViewModelBase
         {
             string field = info.FieldOrder is "tt" or "tb" ? "TFF" : "BFF";
             SelectedDeinterlace = Deint50pLabel;
-            ScanTypeInfo = $"🟠 {codec} entrelazado ({field}, por {info.Method}) → desentrelazado 50p activado automáticamente";
+            ScanTypeInfo = $"[Entrelazado] {codec} ({field}, por {info.Method}) → desentrelazado 50p activado automáticamente";
         }
         else
         {
             SelectedDeinterlace = ProgressiveLabel;
-            ScanTypeInfo = $"🟢 {codec} progresivo (por {info.Method}) → desentrelazado desactivado (innecesario)";
+            ScanTypeInfo = $"[Progresivo] {codec} (por {info.Method}) → desentrelazado desactivado (innecesario)";
         }
         AppendLog($"[Detección] {ScanTypeInfo}");
     }

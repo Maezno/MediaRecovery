@@ -17,6 +17,7 @@
         PreviewDragOver="OnWindowPreviewDragOver"
         PreviewDragLeave="OnWindowPreviewDragLeave"
         PreviewDrop="OnWindowPreviewDrop"
+        Foreground="{StaticResource BrushTextPrimary}"
         Background="{StaticResource BrushBgPrimary}">
 
     <Window.DataContext>
@@ -96,13 +97,17 @@
 
                 <!-- Botón Buscar Actualizaciones en la esquina derecha -->
                 <Button DockPanel.Dock="Right" 
-                        Content="🔄 Buscar actualización" 
                         Style="{StaticResource SecondaryButtonStyle}" 
                         Command="{Binding CheckUpdateCommand}" 
                         FontSize="11" 
                         Padding="8,3" 
                         HorizontalAlignment="Right"
-                        ToolTip="Comprobar si hay una versión más reciente en GitHub (maezno/MediaRecovery)"/>
+                        ToolTip="Comprobar si hay una versión más reciente en GitHub (maezno/MediaRecovery)">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconRefresh}" Width="11.5" Height="11.5" Margin="0,0,5,0"/>
+                        <TextBlock Text="Buscar actualización" FontSize="11" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </DockPanel>
 
             <!-- Banner flotante de aviso de actualización disponible -->
@@ -115,16 +120,17 @@
                     Padding="10,6">
                 <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Right" 
-                            Content="✕" 
                             Style="{StaticResource SecondaryButtonStyle}" 
                             Command="{Binding DismissUpdateCommand}" 
                             Padding="6,2" 
                             FontSize="11" 
                             Margin="6,0,0,0" 
-                            VerticalAlignment="Center"/>
+                            VerticalAlignment="Center"
+                            ToolTip="Cerrar aviso">
+                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconClose}" Width="10" Height="10" Margin="0"/>
+                    </Button>
                     
                     <Button DockPanel.Dock="Right" 
-                            Content="{Binding UpdateButtonText}" 
                             Style="{StaticResource PrimaryButtonStyle}" 
                             Background="{StaticResource BrushSuccessStrong}" 
                             BorderBrush="{StaticResource BrushSuccessStrong}" 
@@ -134,7 +140,12 @@
                             FontSize="11" 
                             FontWeight="SemiBold" 
                             Margin="6,0,0,0" 
-                            VerticalAlignment="Center"/>
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconDownload}" Width="11.5" Height="11.5" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding UpdateButtonText}" FontSize="11" FontWeight="SemiBold" Foreground="#15181E" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding UpdateNoticeText}" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" FontWeight="SemiBold"/>
@@ -147,7 +158,13 @@
         <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}">
 
             <!-- ═══════════ TAB 1: CONVERTIR VIDEOS & LOTES ═══════════ -->
-            <TabItem Header="Convertir Videos &amp; Lotes" DataContext="{Binding Converter}">
+            <TabItem DataContext="{Binding Converter}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconFilm}"/>
+                        <TextBlock Text="Convertir Videos &amp; Lotes" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid Margin="0,8,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" MinHeight="140"/>
@@ -171,7 +188,7 @@
 
                                             <!-- Estado de comprobación de integridad -->
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8" Visibility="{Binding IsCheckingIntegrity, Converter={StaticResource BoolToVis}}">
-                                                <TextBlock Text="🔍" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconSearch}" Fill="{StaticResource BrushTextSecondary}" Width="11.5" Height="11.5" Margin="0,0,6,0"/>
                                                 <TextBlock Text="Analizando integridad y contenedor del video..." FontStyle="Italic" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" VerticalAlignment="Center"/>
                                             </StackPanel>
 
@@ -189,21 +206,26 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="⚠️" FontSize="18" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                                    <Path Grid.Column="0" Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconWarning}" Fill="{StaticResource BrushDanger}" Width="18" Height="18" Margin="0,0,10,0"/>
                                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
                                                         <TextBlock Text="{Binding InputWarningTitle}" FontWeight="Bold" Foreground="{StaticResource BrushDanger}" FontSize="12"/>
                                                         <TextBlock Text="{Binding InputWarningMessage}" Foreground="{StaticResource BrushTextPrimary}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                                     </StackPanel>
                                                     <Button Grid.Column="2" 
-                                                            Content="🔧 Reparar archivo" 
                                                             Style="{StaticResource PrimaryButtonStyle}" 
                                                             Command="{Binding NavigateToRepairCommand}"
                                                             Background="{StaticResource BrushDangerStrong}"
                                                             BorderBrush="{StaticResource BrushDanger}"
+                                                            Foreground="#F4F4F5"
                                                             VerticalAlignment="Center"
                                                             Padding="12,6"
                                                             FontWeight="SemiBold"
-                                                            ToolTip="Abrir este archivo en la pestaña de Recuperación"/>
+                                                            ToolTip="Abrir este archivo en la pestaña de Recuperación">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconWrench}" Fill="#F4F4F5"/>
+                                                            <TextBlock Text="Reparar archivo" Foreground="#F4F4F5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Button>
                                                 </Grid>
                                             </Border>
 
@@ -304,7 +326,7 @@
                                         <StackPanel Style="{StaticResource FieldGroup}">
                                             <TextBlock Text="Desentrelazado:" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox SelectedValue="{Binding SelectedDeinterlace}" SelectedValuePath="Content" Width="330">
-                                                <ComboBoxItem Content="🧠 Inteligente (detectar por archivo)" IsSelected="True"/>
+                                                <ComboBoxItem Content="Inteligente (detectar por archivo)" IsSelected="True"/>
                                                 <ComboBoxItem Content="Desentrelazar -&gt; 50p (Recomendado ProRes / Doble de cuadros)"/>
                                                 <ComboBoxItem Content="Desentrelazar -&gt; 25p (Recomendado Blackmagic)"/>
                                                 <ComboBoxItem Content="Auto (Solo cuadros entrelazados)"/>
@@ -327,16 +349,25 @@
                             <Button Content="Convertir archivo" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartSingleConvertCommand}" MinWidth="140" Margin="0,0,8,4"/>
                             <Button Content="Iniciar lote" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartBatchConvertCommand}" MinWidth="120" Margin="0,0,8,4"/>
                             <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" MinWidth="90" Margin="0,0,8,4"/>
-                            <Button Content="📋 Copiar log" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles"/>
-                            <Button Content="📂 Ir al archivo convertido" 
-                                    Style="{StaticResource PrimaryButtonStyle}" 
+                            <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconClipboard}"/>
+                                    <TextBlock Text="Copiar log" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource PrimaryButtonStyle}" 
                                     Background="{StaticResource BrushSuccessStrong}" 
                                     BorderBrush="{StaticResource BrushSuccessStrong}" 
                                     Command="{Binding OpenOutputCommand}" 
                                     Visibility="{Binding HasLastOutput, Converter={StaticResource BoolToVis}}" 
                                     MinWidth="160" 
                                     Margin="8,0,8,4" 
-                                    ToolTip="Abrir la ubicación del archivo o carpeta de salida en el Explorador"/>
+                                    ToolTip="Abrir la ubicación del archivo o carpeta de salida en el Explorador">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconFolderOpen}" Fill="#15181E"/>
+                                    <TextBlock Text="Ir al archivo convertido" Foreground="#15181E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </WrapPanel>
                         <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
                         <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
@@ -350,7 +381,13 @@
             </TabItem>
 
             <!-- ═══════════ TAB 2: RECUPERACIÓN PRORES ═══════════ -->
-            <TabItem Header="Recuperación ProRes" DataContext="{Binding Recovery}">
+            <TabItem DataContext="{Binding Recovery}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconWrench}"/>
+                        <TextBlock Text="Recuperación ProRes" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid Margin="0,8,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" MinHeight="120"/>
@@ -384,7 +421,12 @@
                                     <WrapPanel Margin="0,4,0,0">
                                         <Button Content="Iniciar Escaneo" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" MinWidth="140" Margin="0,0,8,4"/>
                                         <Button Content="Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" MinWidth="90" Margin="0,0,8,4"/>
-                                        <Button Content="📋 Copiar log" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles"/>
+                                        <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconClipboard}"/>
+                                                <TextBlock Text="Copiar log" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
                                     </WrapPanel>
                                 </StackPanel>
                             </Border>
@@ -440,7 +482,13 @@
             </TabItem>
 
             <!-- ═══════════ TAB 3: DESCARGAR DE YOUTUBE / WEB ═══════════ -->
-            <TabItem Header="Descargar de YouTube / Web" DataContext="{Binding Downloader}">
+            <TabItem DataContext="{Binding Downloader}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconDownload}"/>
+                        <TextBlock Text="Descargar de YouTube / Web" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid Margin="0,8,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" MinHeight="120"/>
@@ -522,7 +570,12 @@
                         <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,6">
                             <Button Content="Iniciar Descarga" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartDownloadCommand}" MinWidth="140" Margin="0,0,8,4"/>
                             <Button Content="Cancelar" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelCommand}" MinWidth="90" Margin="0,0,8,4"/>
-                            <Button Content="📋 Copiar log" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles"/>
+                            <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyLogCommand}" MinWidth="105" Margin="0,0,8,4" ToolTip="Copiar todo el registro al portapapeles">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconClipboard}"/>
+                                    <TextBlock Text="Copiar log" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </WrapPanel>
                         <ProgressBar DockPanel.Dock="Top" Height="6" Value="{Binding Progress}" Maximum="100" Margin="0,0,0,4" Background="{StaticResource BrushBgTertiary}" Foreground="{StaticResource BrushAccent}"/>
                         <TextBlock DockPanel.Dock="Top" Text="{Binding StatusText}" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4" TextTrimming="CharacterEllipsis"/>
@@ -536,7 +589,13 @@
             </TabItem>
 
             <!-- ═══════════ TAB 4: BIBLIOTECA & HERRAMIENTAS ═══════════ -->
-            <TabItem Header="Biblioteca &amp; Herramientas" DataContext="{Binding LibraryTools}">
+            <TabItem DataContext="{Binding LibraryTools}">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconLibrary}"/>
+                        <TextBlock Text="Biblioteca &amp; Herramientas" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid Margin="0,8,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -546,8 +605,11 @@
                     <!-- Selector de carpeta principal compartido -->
                     <Border Grid.Row="0" Style="{StaticResource CardPanel}" Margin="0,0,0,10" Padding="12,10" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnFolderADrop">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Left" Text="📁  Carpeta" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"
-                                       ToolTip="Carpeta de origen a analizar (podés arrastrar una carpeta aquí)"/>
+                            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0"
+                                        ToolTip="Carpeta de origen a analizar (podés arrastrar una carpeta aquí)">
+                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconFolder}" Fill="{StaticResource BrushAccent}" Width="14" Height="14"/>
+                                <TextBlock Text="Carpeta" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
                             <CheckBox DockPanel.Dock="Right" Content="Incluir subcarpetas" IsChecked="{Binding IsRecursive}" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="14,0,0,0"/>
                             <Button DockPanel.Dock="Right" Content="Examinar…" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding BrowseFolderACommand}"/>
                             <TextBox Text="{Binding FolderPathA, UpdateSourceTrigger=PropertyChanged}" AllowDrop="True" DragOver="OnFileDragOver" Drop="OnFolderADrop" Margin="0,0,8,0"
@@ -559,7 +621,13 @@
                     <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedToolIndex}" Style="{StaticResource SideNavTabControl}">
 
                         <!-- ──────── 1. ANALIZADOR DE DISPOSITIVOS & PRENSA ──────── -->
-                        <TabItem Header="📱  Dispositivos" ToolTip="Analizador de dispositivos (Prensa)">
+                        <TabItem ToolTip="Analizador de dispositivos (Prensa)">
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconPhone}"/>
+                                    <TextBlock Text="Dispositivos" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -578,10 +646,30 @@
                                             <TextBlock Text="Año:" Style="{StaticResource FieldLabel}"/>
                                             <ComboBox ItemsSource="{Binding YearsList}" SelectedItem="{Binding SelectedYear}" Width="90"/>
                                         </StackPanel>
-                                        <Button Content="▶ Analizar" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,4"/>
-                                        <Button Content="⏹ Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" Margin="0,0,8,4"/>
-                                        <Button Content="⬇ Resumen CSV" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ExportCsvSummaryCommand}" Margin="0,0,6,4"/>
-                                        <Button Content="⬇ Detalle CSV" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ExportCsvDetailCommand}" Margin="0,0,6,4"/>
+                                        <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconPlay}" Fill="#15181E"/>
+                                                <TextBlock Text="Analizar" Foreground="#15181E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" Margin="0,0,8,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconStop}"/>
+                                                <TextBlock Text="Detener" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ExportCsvSummaryCommand}" Margin="0,0,6,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconDownload}"/>
+                                                <TextBlock Text="Resumen CSV" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ExportCsvDetailCommand}" Margin="0,0,6,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconDownload}"/>
+                                                <TextBlock Text="Detalle CSV" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
                                     </WrapPanel>
                                 </Border>
 
@@ -624,7 +712,12 @@
                                     <Border Grid.Column="2" Style="{StaticResource TablePanel}">
                                         <DockPanel>
                                             <DockPanel DockPanel.Dock="Top" Margin="4,0,0,6">
-                                                <Button DockPanel.Dock="Right" Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" Padding="8,3" FontSize="11"/>
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" Padding="8,3" FontSize="11">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconFolderOpen}" Width="11.5" Height="11.5" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="Abrir en Explorador" FontSize="11" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
                                                 <TextBlock Text="Videos" ToolTip="Doble clic en una fila para ubicar el archivo" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" FontSize="11" VerticalAlignment="Center"/>
                                             </DockPanel>
                                             <ListView ItemsSource="{Binding FilteredVideosForSelectedDevice}" SelectedItem="{Binding SelectedMetadataItem}" Background="Transparent" BorderThickness="0">
@@ -651,7 +744,13 @@
                         </TabItem>
 
                         <!-- 2. BUSCADOR HORIZONTAL / VERTICAL -->
-                        <TabItem Header="📐  Horizontal / Vertical" ToolTip="Buscador de videos horizontales y verticales">
+                        <TabItem ToolTip="Buscador de videos horizontales y verticales">
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconAspectRatio}"/>
+                                    <TextBlock Text="Horizontal / Vertical" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -669,8 +768,18 @@
                                         <!-- Fila 1: criterios de búsqueda + acción principal -->
                                         <DockPanel Grid.Row="0" LastChildFill="True">
                                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="10,0,0,0">
-                                                <Button Content="▶  Buscar" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,6,0"/>
-                                                <Button Content="⏹  Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}"/>
+                                                <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,6,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconPlay}" Fill="#15181E"/>
+                                                        <TextBlock Text="Buscar" Foreground="#15181E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconStop}"/>
+                                                        <TextBlock Text="Detener" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
                                             </StackPanel>
                                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0">
                                                 <TextBlock Text="Orientación" Style="{StaticResource FieldLabel}" Margin="0,0,8,0"/>
@@ -682,8 +791,18 @@
                                         <!-- Fila 2: acciones sobre el video seleccionado -->
                                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
                                             <TextBlock Text="Seleccionado:" Style="{StaticResource FieldLabel}" Foreground="{StaticResource BrushTextMuted}" Margin="0,0,10,0"/>
-                                            <Button Content="📂  Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" MinHeight="28" FontSize="12" Margin="0,0,6,0"/>
-                                            <Button Content="⚡  Enviar a Convertir" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding SendToConverterCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" MinHeight="28" FontSize="12"/>
+                                            <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" MinHeight="28" FontSize="12" Margin="0,0,6,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconFolderOpen}"/>
+                                                    <TextBlock Text="Abrir en Explorador" FontSize="12" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding SendToConverterCommand}" CommandParameter="{Binding SelectedMetadataItem.FilePath}" MinHeight="28" FontSize="12">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconBolt}"/>
+                                                    <TextBlock Text="Enviar a Convertir" FontSize="12" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -741,7 +860,13 @@
                         </TabItem>
 
                         <!-- ──────── 2. BUSCADOR DE VIDEOS ROTOS O DAÑADOS ──────── -->
-                        <TabItem Header="⚠️  Videos dañados" ToolTip="Buscador de videos rotos o dañados">
+                        <TabItem ToolTip="Buscador de videos rotos o dañados">
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconWarning}"/>
+                                    <TextBlock Text="Videos dañados" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -752,8 +877,18 @@
                                 <Border Grid.Row="0" Style="{StaticResource CardPanel}" Padding="8,6" Margin="0,0,0,6">
                                     <WrapPanel VerticalAlignment="Center">
                                         <CheckBox Content="Prueba profunda de decodificación (ffmpeg probe)" IsChecked="{Binding DeepDecodeCheck}" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,16,0"/>
-                                        <Button Content="▶ Buscar videos rotos" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,0"/>
-                                        <Button Content="⏹ Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" Margin="0,0,8,0"/>
+                                        <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconPlay}" Fill="#15181E"/>
+                                                <TextBlock Text="Buscar videos rotos" Foreground="#15181E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}" Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconStop}"/>
+                                                <TextBlock Text="Detener" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
                                     </WrapPanel>
                                 </Border>
 
@@ -766,8 +901,18 @@
                                 <Border Grid.Row="2" Style="{StaticResource TablePanel}">
                                     <DockPanel>
                                         <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-                                            <Button Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedBrokenItem.FilePath}" Margin="0,0,8,0"/>
-                                            <Button Content="🔧 Enviar a Reparación ProRes" Style="{StaticResource PrimaryButtonStyle}" Background="{StaticResource BrushWarning}" BorderBrush="{StaticResource BrushWarning}" Command="{Binding SendToRepairCommand}" CommandParameter="{Binding SelectedBrokenItem.FilePath}" ToolTip="Abrir este video en la pestaña de Recuperación ProRes"/>
+                                            <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedBrokenItem.FilePath}" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconFolderOpen}"/>
+                                                    <TextBlock Text="Abrir en Explorador" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Style="{StaticResource PrimaryButtonStyle}" Background="{StaticResource BrushWarning}" BorderBrush="{StaticResource BrushWarning}" Command="{Binding SendToRepairCommand}" CommandParameter="{Binding SelectedBrokenItem.FilePath}" ToolTip="Abrir este video en la pestaña de Recuperación ProRes">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconWrench}" Fill="#15181E"/>
+                                                    <TextBlock Text="Enviar a Reparación ProRes" Foreground="#15181E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
                                         </WrapPanel>
                                         <ListView ItemsSource="{Binding BrokenItems}" SelectedItem="{Binding SelectedBrokenItem}" Background="Transparent" BorderThickness="0">
                                             <ListView.View>
@@ -786,7 +931,13 @@
                         </TabItem>
 
                         <!-- ──────── 3. BUSCADOR DE VIDEOS SIN COMPRESIÓN / PESADOS ──────── -->
-                        <TabItem Header="📦  Videos pesados" ToolTip="Videos sin compresión o muy pesados (ProRes, DNxHD, RAW)">
+                        <TabItem ToolTip="Videos sin compresión o muy pesados (ProRes, DNxHD, RAW)">
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconHeavy}"/>
+                                    <TextBlock Text="Videos pesados" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -806,8 +957,18 @@
                                             <TextBox Text="{Binding MinSizeGB}" Width="58" TextAlignment="Center"/>
                                             <TextBlock Text="GB" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="4,0,0,0"/>
                                         </StackPanel>
-                                        <Button Content="▶ Buscar videos pesados" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,0"/>
-                                        <Button Content="⏹ Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}"/>
+                                        <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconPlay}" Fill="#15181E"/>
+                                                <TextBlock Text="Buscar videos pesados" Foreground="#15181E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconStop}"/>
+                                                <TextBlock Text="Detener" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
                                     </WrapPanel>
                                 </Border>
 
@@ -820,8 +981,18 @@
                                 <Border Grid.Row="2" Style="{StaticResource TablePanel}">
                                     <DockPanel>
                                         <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-                                            <Button Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedHeavyItem.FilePath}" Margin="0,0,8,0"/>
-                                            <Button Content="⚡ Enviar a Convertir / Comprimir" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding SendToConverterCommand}" CommandParameter="{Binding SelectedHeavyItem.FilePath}" ToolTip="Abrir este video en la pestaña de Conversión"/>
+                                            <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedHeavyItem.FilePath}" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconFolderOpen}"/>
+                                                    <TextBlock Text="Abrir en Explorador" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding SendToConverterCommand}" CommandParameter="{Binding SelectedHeavyItem.FilePath}" ToolTip="Abrir este video en la pestaña de Conversión">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconBolt}" Fill="#15181E"/>
+                                                    <TextBlock Text="Enviar a Convertir / Comprimir" Foreground="#15181E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
                                         </WrapPanel>
                                         <ListView ItemsSource="{Binding HeavyItems}" SelectedItem="{Binding SelectedHeavyItem}" Background="Transparent" BorderThickness="0">
                                             <ListView.View>
@@ -842,7 +1013,13 @@
                         </TabItem>
 
                         <!-- ──────── 4. BUSCADOR DE DUPLICADOS ──────── -->
-                        <TabItem Header="👥  Duplicados" ToolTip="Buscador de archivos duplicados">
+                        <TabItem ToolTip="Buscador de archivos duplicados">
+                            <TabItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconDuplicates}"/>
+                                    <TextBlock Text="Duplicados" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </TabItem.Header>
                             <Grid Margin="0,6,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -854,8 +1031,18 @@
                                     <StackPanel>
                                         <WrapPanel Margin="0,0,0,6" VerticalAlignment="Center">
                                             <CheckBox Content="Comparar 2 carpetas distintas (Carpeta A vs Carpeta B)" IsChecked="{Binding CompareTwoFolders}" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,16,0"/>
-                                            <Button Content="▶ Buscar duplicados" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,0"/>
-                                            <Button Content="⏹ Detener" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}"/>
+                                            <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartScanCommand}" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconPlay}" Fill="#15181E"/>
+                                                    <TextBlock Text="Buscar duplicados" Foreground="#15181E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CancelScanCommand}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconStop}"/>
+                                                    <TextBlock Text="Detener" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
                                         </WrapPanel>
                                         <!-- Carpeta B si está activada la comparación -->
                                         <DockPanel Visibility="{Binding CompareTwoFolders, Converter={StaticResource BoolToVis}}" Margin="0,2,0,2">
@@ -875,8 +1062,18 @@
                                 <Border Grid.Row="2" Style="{StaticResource TablePanel}">
                                     <DockPanel>
                                         <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
-                                            <Button Content="📂 Abrir en Explorador" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedDuplicateItem.FilePath}" Margin="0,0,8,0"/>
-                                            <Button Content="🗑 Enviar duplicado a Papelera" Style="{StaticResource DangerButtonStyle}" Command="{Binding DeleteDuplicateCommand}" CommandParameter="{Binding SelectedDuplicateItem}"/>
+                                            <Button Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenFileLocationCommand}" CommandParameter="{Binding SelectedDuplicateItem.FilePath}" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconFolderOpen}"/>
+                                                    <TextBlock Text="Abrir en Explorador" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Style="{StaticResource DangerButtonStyle}" Command="{Binding DeleteDuplicateCommand}" CommandParameter="{Binding SelectedDuplicateItem}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource BootstrapIcon}" Data="{StaticResource IconTrash}" Fill="#F4F4F5"/>
+                                                    <TextBlock Text="Enviar duplicado a Papelera" Foreground="#F4F4F5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
                                         </WrapPanel>
                                         <ListView ItemsSource="{Binding DuplicateItems}" SelectedItem="{Binding SelectedDuplicateItem}" Background="Transparent" BorderThickness="0">
                                             <ListView.View>
@@ -932,7 +1129,7 @@
                 CornerRadius="10"
                 Panel.ZIndex="999">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="📥" FontSize="42" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                <Path Data="{StaticResource IconCloudDrop}" Stretch="Uniform" Width="46" Height="46" Fill="{StaticResource BrushAccent}" HorizontalAlignment="Center" Margin="0,0,0,14"/>
                 <TextBlock x:Name="GlobalDropTitle"
                            Text="Soltá el archivo o carpeta en cualquier parte"
                            FontSize="18"
